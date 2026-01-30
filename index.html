@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NutriCam V14</title>
+    <title>NutriCam V15</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Marked para Markdown -->
@@ -72,12 +72,23 @@
     <!-- Interface Principal -->
     <div id="mainInterface" class="w-full max-w-md hidden">
         
-        <!-- Preview (Agora com object-contain para não distorcer) -->
-        <div id="previewContainer" class="hidden relative w-full h-64 bg-slate-900 rounded-xl mb-6 overflow-hidden border border-slate-600 shadow-2xl flex items-center justify-center">
+        <!-- Preview -->
+        <div id="previewContainer" class="hidden relative w-full h-64 bg-slate-900 rounded-xl mb-4 overflow-hidden border border-slate-600 shadow-2xl flex items-center justify-center">
             <img id="imagePreview" class="max-w-full max-h-full object-contain">
             <button onclick="resetImage()" class="absolute top-2 right-2 bg-black/60 backdrop-blur p-2 rounded-full text-white hover:bg-red-500 transition border border-white/10 z-10">
                 <i class="fas fa-times"></i>
             </button>
+        </div>
+
+        <!-- ÁREA DE DESCRIÇÃO OPCIONAL (NOVA) -->
+        <div id="descriptionArea" class="hidden w-full mb-4 animate-fade-in">
+            <button onclick="toggleDescriptionInput()" class="text-xs text-blue-400 hover:text-blue-300 font-bold mb-2 flex items-center gap-1 transition">
+                <i class="fas fa-pen"></i> Adicionar detalhes dos alimentos (Opcional)
+            </button>
+            
+            <div id="inputContainer" class="hidden">
+                <textarea id="userDescription" rows="2" class="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-sm text-white focus:border-blue-500 outline-none placeholder-slate-500" placeholder="Ex: O molho é de iogurte, o arroz é integral, tem 200g de frango..."></textarea>
+            </div>
         </div>
 
         <!-- BOTÃO DE UPLOAD -->
@@ -100,7 +111,7 @@
         <!-- CONTAINER DE RESULTADO (CARD PARA SALVAR) -->
         <div id="captureArea" class="hidden mt-8 bg-slate-800 rounded-xl shadow-2xl border-t-4 border-green-500 overflow-hidden w-full mx-auto">
             
-            <!-- Foto no Card (Sem distorção - Letterboxing) -->
+            <!-- Foto no Card (Letterbox) -->
             <div id="printHeader" class="w-full h-64 bg-slate-900 flex items-center justify-center relative border-b border-slate-700 hidden">
                 <img id="printImage" class="max-w-full max-h-full object-contain">
                 <div class="absolute bottom-0 left-0 bg-black/70 px-3 py-1 text-[10px] text-white font-mono rounded-tr-lg">
@@ -115,6 +126,13 @@
                     </h3>
                     <span class="text-[10px] text-slate-400 font-mono" id="dateLabel"></span>
                 </div>
+                
+                <!-- Exibe a observação do usuário no card se houver -->
+                <div id="userNoteDisplay" class="hidden mb-4 p-3 bg-slate-700/50 rounded-lg border-l-2 border-blue-400">
+                    <p class="text-[10px] text-blue-200 font-bold mb-1">OBSERVAÇÃO:</p>
+                    <p id="userNoteText" class="text-xs text-slate-300 italic"></p>
+                </div>
+
                 <div id="markdownContent"></div>
                 
                 <div class="mt-4 pt-3 border-t border-slate-700 text-center">
@@ -145,7 +163,6 @@
             } else {
                 document.getElementById('configPanel').classList.remove('hidden');
             }
-            // Data no card
             document.getElementById('dateLabel').innerText = new Date().toLocaleDateString('pt-BR');
         };
 
@@ -222,8 +239,16 @@
             document.getElementById('modelSelectArea').classList.add('hidden');
         }
 
-        // --- 2. FILE HANDLING ---
+        // --- 2. INTERFACE E IMAGEM ---
         let base64Image = null;
+
+        function toggleDescriptionInput() {
+            const container = document.getElementById('inputContainer');
+            container.classList.toggle('hidden');
+            if (!container.classList.contains('hidden')) {
+                document.getElementById('userDescription').focus();
+            }
+        }
 
         function handleFile(input) {
             const file = input.files[0];
@@ -233,13 +258,14 @@
             reader.onload = (e) => {
                 base64Image = e.target.result.split(',')[1];
                 document.getElementById('imagePreview').src = e.target.result;
+                document.getElementById('printImage').src = e.target.result;
+                
                 document.getElementById('previewContainer').classList.remove('hidden');
+                document.getElementById('descriptionArea').classList.remove('hidden'); // Mostra campo de descrição
                 document.getElementById('uploadButtons').classList.add('hidden');
                 document.getElementById('captureArea').classList.add('hidden');
                 document.getElementById('saveBtn').classList.add('hidden');
                 document.getElementById('errorLog').classList.add('hidden');
-                
-                document.getElementById('printImage').src = e.target.result;
                 
                 const btn = document.getElementById('analyzeBtn');
                 btn.disabled = false;
@@ -252,6 +278,10 @@
         function resetImage() {
             base64Image = null;
             document.getElementById('previewContainer').classList.add('hidden');
+            document.getElementById('descriptionArea').classList.add('hidden');
+            document.getElementById('inputContainer').classList.add('hidden'); // Esconde textarea
+            document.getElementById('userDescription').value = ''; // Limpa texto
+            
             document.getElementById('uploadButtons').classList.remove('hidden');
             document.getElementById('captureArea').classList.add('hidden');
             document.getElementById('saveBtn').classList.add('hidden');
@@ -264,7 +294,7 @@
             document.querySelectorAll('input').forEach(i => i.value = '');
         }
 
-        // --- 3. ANÁLISE (Prompt Calibrado) ---
+        // --- 3. ANÁLISE (Com Contexto do Usuário) ---
         async function analyze() {
             const key = localStorage.getItem('nutricam_stable_key');
             let modelName = localStorage.getItem('nutricam_stable_model');
@@ -273,6 +303,7 @@
 
             const btn = document.getElementById('analyzeBtn');
             const errorLog = document.getElementById('errorLog');
+            const userText = document.getElementById('userDescription').value.trim();
             
             btn.disabled = true;
             btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Analisando...`;
@@ -282,12 +313,19 @@
                 let cleanModelName = modelName.startsWith('models/') ? modelName.replace('models/', '') : modelName;
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModelName}:generateContent?key=${key}`;
 
-                // PROMPT V14: MÉDIO E COM SUGESTÃO
+                // Montagem do Contexto Adicional
+                let contextString = "";
+                if (userText) {
+                    contextString = `\n\nCONTEXTO DO USUÁRIO (Importante: use estas informações para corrigir sua identificação visual): "${userText}"`;
+                }
+
+                // PROMPT
                 const prompt = `
                 Aja como um nutricionista esportivo.
                 Perfil: Homem, 91kg, Mestrando, objetivo de emagrecimento com manutenção de massa magra.
+                ${contextString}
                 
-                Analise a imagem da refeição seguindo esta estrutura:
+                Analise a imagem da refeição e siga esta estrutura:
                 
                 1. Alimentos Identificados
                 (Liste de forma direta)
@@ -300,10 +338,10 @@
                 **Proteína Total: [Valor]g**
                 
                 4. Análise da Refeição
-                (Faça um comentário equilibrado: nem telegráfico, nem longo demais. Explique brevemente se a saciedade será boa e se os macros estão alinhados ao objetivo).
+                (Comentário equilibrado sobre saciedade e metas).
                 
                 5. Alternativa Saudável e Econômica
-                (Sugira UMA opção de refeição com calorias similares, mas usando alimentos baratos e acessíveis como ovo, frango, batata, aveia, etc. Ex: "Trocar o salgado por 2 ovos mexidos com 1 fatia de pão").
+                (Sugira UMA opção de refeição com calorias similares usando alimentos baratos).
                 `;
 
                 const response = await fetch(url, {
@@ -327,9 +365,18 @@
                 
                 document.getElementById('markdownContent').innerHTML = marked.parse(text);
                 
+                // Mostrar resultados
                 const captureArea = document.getElementById('captureArea');
                 captureArea.classList.remove('hidden');
                 document.getElementById('printHeader').classList.remove('hidden');
+                
+                // Mostrar nota do usuário no card se houver
+                if (userText) {
+                    document.getElementById('userNoteDisplay').classList.remove('hidden');
+                    document.getElementById('userNoteText').innerText = userText;
+                } else {
+                    document.getElementById('userNoteDisplay').classList.add('hidden');
+                }
                 
                 document.getElementById('saveBtn').classList.remove('hidden');
                 captureArea.scrollIntoView({ behavior: 'smooth' });
@@ -354,7 +401,7 @@
                 backgroundColor: "#1e293b", 
                 scale: 1.5, 
                 logging: false,
-                useCORS: true // Ajuda com imagens locais
+                useCORS: true
             }).then(canvas => {
                 const link = document.createElement('a');
                 link.download = 'Refeicao_' + new Date().toLocaleTimeString().replace(/:/g, '-') + '.png';
