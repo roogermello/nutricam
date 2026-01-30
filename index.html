@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NutriCam V9.2</title>
+    <title>NutriCam V9.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -71,7 +71,7 @@
     <!-- Header -->
     <div class="w-full max-w-md flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
         <h1 class="font-bold text-xl flex items-center gap-2">
-            <i class="fas fa-carrot text-green-500"></i> NutriCam <span class="text-xs bg-purple-900 text-purple-200 px-2 rounded">V9.2</span>
+            <i class="fas fa-carrot text-green-500"></i> NutriCam <span class="text-xs bg-purple-900 text-purple-200 px-2 rounded">V9.3</span>
         </h1>
         <button onclick="toggleConfig()" class="text-slate-400 hover:text-white">
             <i class="fas fa-cog fa-lg"></i>
@@ -313,7 +313,7 @@
                 // PROMPT AJUSTADO PARA FORÇAR FORMATAÇÃO VISUAL
                 const prompt = `
                 Aja como nutricionista esportivo (Homem, 91kg, ombro lesionado).
-                Analise a imagem:
+                Analise a imagem e siga estritamente este formato, sem introduções:
                 
                 1. Alimentos presentes.
                 2. Tabela Detalhada (Item | Qtd | Kcal | Proteína | Carboidrato | Gordura).
@@ -323,7 +323,7 @@
                 4. Coloque valores importantes de proteína em **negrito**.
                 
                 5. Breve análise de saciedade.
-                Responda em Português e Markdown.
+                Responda em Português e Markdown. Comece a resposta DIRETAMENTE no ponto 1.
                 `;
 
                 const response = await fetch(url, {
