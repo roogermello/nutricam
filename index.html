@@ -16,25 +16,26 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; }
         
-        /* ESTILOS DA TABELA NUTRICIONAL */
+        /* ESTILOS DA TABELA NUTRICIONAL COMPACTA */
         #markdownContent h1, #markdownContent h2 {
             color: #4ade80;
-            font-size: 1.4rem;
+            font-size: 1.2rem; /* Fonte menor */
             font-weight: 800;
-            margin-top: 1rem;
-            margin-bottom: 0.5rem;
+            margin-top: 0.8rem;
+            margin-bottom: 0.3rem;
             border-bottom: 1px solid #334155;
-            padding-bottom: 0.5rem;
+            padding-bottom: 0.2rem;
         }
         #markdownContent strong { color: #fbbf24; font-weight: 900; }
         #markdownContent table {
-            width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.75rem;
-            background-color: #1e293b; border-radius: 8px; overflow: hidden;
+            width: 100%; border-collapse: collapse; margin: 0.5rem 0; font-size: 0.7rem; /* Tabela mais compacta */
+            background-color: #1e293b; border-radius: 6px; overflow: hidden;
             display: block; overflow-x: auto; white-space: nowrap;
         }
-        #markdownContent th { background-color: #334155; color: #94a3b8; font-weight: 600; text-align: left; padding: 10px 8px; }
-        #markdownContent td { border-bottom: 1px solid #334155; padding: 10px 8px; color: #e2e8f0; }
-        #markdownContent p { line-height: 1.6; color: #cbd5e1; margin-bottom: 10px; }
+        #markdownContent th { background-color: #334155; color: #94a3b8; font-weight: 600; text-align: left; padding: 6px 4px; }
+        #markdownContent td { border-bottom: 1px solid #334155; padding: 6px 4px; color: #e2e8f0; }
+        #markdownContent p { line-height: 1.4; color: #cbd5e1; margin-bottom: 5px; font-size: 0.85rem; }
+        #markdownContent li { font-size: 0.85rem; line-height: 1.4; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-4">
@@ -97,27 +98,25 @@
             Aguardando foto...
         </button>
 
-        <!-- CONTAINER DE RESULTADO (SERÁ CAPTURADO) -->
-        <div id="captureArea" class="hidden mt-8 bg-slate-800 rounded-xl shadow-2xl border-t-4 border-green-500 overflow-hidden">
+        <!-- CONTAINER DE RESULTADO (COMPACTO PARA PRINT) -->
+        <div id="captureArea" class="hidden mt-6 bg-slate-800 rounded-xl shadow-2xl border-t-4 border-green-500 overflow-hidden w-full max-w-sm mx-auto">
             
-            <!-- Foto duplicada aqui para sair no print final -->
-            <div id="printHeader" class="w-full h-40 overflow-hidden relative border-b border-slate-700 hidden">
+            <!-- Foto menor para o card ficar compacto -->
+            <div id="printHeader" class="w-full h-32 overflow-hidden relative border-b border-slate-700 hidden">
                 <img id="printImage" class="w-full h-full object-cover opacity-80">
-                <div class="absolute bottom-0 left-0 bg-black/60 px-3 py-1 text-xs text-white">Refeição</div>
+                <div class="absolute bottom-0 left-0 bg-black/60 px-2 py-1 text-[10px] text-white font-mono">NutriCam Reg.</div>
             </div>
 
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-700">
-                    <h3 class="font-bold text-white flex items-center gap-2"><i class="fas fa-chart-pie text-green-400"></i> Relatório Nutricional</h3>
-                    <span id="modelBadge" class="text-[10px] bg-slate-700 px-2 py-1 rounded text-slate-400 border border-slate-600">IA</span>
-                </div>
+            <!-- Padding reduzido (p-4) para imagem menor -->
+            <div class="p-4">
                 <div id="markdownContent"></div>
+                <div class="mt-2 text-[8px] text-slate-500 text-right font-mono">Gerado por IA</div>
             </div>
         </div>
 
         <!-- Botão Salvar (Aparece depois) -->
         <button id="saveBtn" onclick="downloadCard()" class="hidden w-full mt-4 bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-xl shadow-lg transition flex justify-center items-center gap-2">
-            <i class="fas fa-download"></i> Salvar Card na Galeria
+            <i class="fas fa-download"></i> Salvar Card
         </button>
         
         <div id="errorLog" class="hidden mt-4 p-3 bg-red-900/50 border border-red-500 rounded text-xs font-mono text-red-200 break-all"></div>
@@ -229,7 +228,6 @@
                 document.getElementById('saveBtn').classList.add('hidden');
                 document.getElementById('errorLog').classList.add('hidden');
                 
-                // Prepara imagem para o card de impressão
                 document.getElementById('printImage').src = e.target.result;
                 
                 const btn = document.getElementById('analyzeBtn');
@@ -255,7 +253,7 @@
             document.querySelectorAll('input').forEach(i => i.value = '');
         }
 
-        // --- 3. ANÁLISE ---
+        // --- 3. ANÁLISE OTIMIZADA E DIRETA ---
         async function analyze() {
             const key = localStorage.getItem('nutricam_stable_key');
             let modelName = localStorage.getItem('nutricam_stable_model');
@@ -266,29 +264,31 @@
             const errorLog = document.getElementById('errorLog');
             
             btn.disabled = true;
-            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Analisando Alimentos...`;
+            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Processando...`;
             errorLog.classList.add('hidden');
 
             try {
                 let cleanModelName = modelName.startsWith('models/') ? modelName.replace('models/', '') : modelName;
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModelName}:generateContent?key=${key}`;
 
+                // PROMPT "CURTO E GROSSO"
                 const prompt = `
-                Aja como nutricionista esportivo.
-                Perfil: Homem, 91kg, ombro lesionado (foco em manutenção de massa magra/emagrecimento).
+                Aja como nutricionista esportivo (Homem, 91kg).
+                Seja EXTREMAMENTE conciso. Sem saudações.
                 
-                Analise a imagem da refeição:
-                1. Liste os alimentos.
-                2. Gere uma Tabela Nutricional (markdown):
-                | Item | Qtd (est) | Kcal | Prot (g) | Carb (g) | Gord (g) |
-                |---|---|---|---|---|---|
+                Siga exatamente este formato:
+                1. Alimentos Identificados
+                [Lista simples, um por linha]
                 
-                3. Resumo Final:
-                   - TOTAL CALÓRICO (Use ## para destaque).
-                   - TOTAL PROTEÍNA (Use **negrito**).
-                   - Breve comentário sobre a qualidade da refeição para o objetivo.
+                2. Tabela Nutricional
+                (Crie uma tabela Markdown compacta com colunas: Item, Qtd, Kcal, Prot, Carb, Gord)
                 
-                Responda em Português.
+                3. Totais
+                ## Total: [Valor] Kcal
+                **Proteína Total: [Valor]g**
+                
+                4. Veredito
+                [Uma ÚNICA frase curta sobre saciedade/meta]
                 `;
 
                 const response = await fetch(url, {
@@ -312,48 +312,44 @@
                 
                 document.getElementById('markdownContent').innerHTML = marked.parse(text);
                 
-                // Mostrar Card e Botão Salvar
                 const captureArea = document.getElementById('captureArea');
                 captureArea.classList.remove('hidden');
-                
-                // Mostra a imagem dentro do card também, para o print ficar completo
                 document.getElementById('printHeader').classList.remove('hidden');
                 
-                document.getElementById('modelBadge').innerText = cleanModelName;
                 document.getElementById('saveBtn').classList.remove('hidden');
-                
                 captureArea.scrollIntoView({ behavior: 'smooth' });
 
             } catch (error) {
                 errorLog.classList.remove('hidden');
                 errorLog.innerText = `ERRO: ${error.message}`;
-                alert("Erro na análise. Tente novamente.");
+                alert("Erro na análise.");
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = `<i class="fas fa-magic"></i> Analisar Novamente`;
             }
         }
 
-        // --- 4. FUNÇÃO DE DOWNLOAD ---
+        // --- 4. FUNÇÃO DE DOWNLOAD (AJUSTADA PARA TAMANHO MENOR) ---
         function downloadCard() {
             const element = document.getElementById('captureArea');
             const btn = document.getElementById('saveBtn');
-            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Gerando imagem...`;
+            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Gerando...`;
             
             html2canvas(element, {
-                backgroundColor: "#1e293b", // Fundo escuro garantido
-                scale: 2 // Melhor qualidade
+                backgroundColor: "#1e293b", 
+                scale: 1.5, // Reduzi de 2 para 1.5 para gerar arquivo menor, mas ainda legível
+                logging: false
             }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = 'NutriCam_Refeicao_' + new Date().toLocaleTimeString() + '.png';
+                link.download = 'Refeicao_' + new Date().toLocaleTimeString().replace(/:/g, '-') + '.png';
                 link.href = canvas.toDataURL("image/png");
                 link.click();
                 btn.innerHTML = `<i class="fas fa-check"></i> Salvo!`;
                 setTimeout(() => {
-                    btn.innerHTML = `<i class="fas fa-download"></i> Salvar Card na Galeria`;
+                    btn.innerHTML = `<i class="fas fa-download"></i> Salvar Card`;
                 }, 2000);
             }).catch(err => {
-                alert("Erro ao salvar imagem: " + err);
+                alert("Erro: " + err);
                 btn.innerHTML = "Erro ao salvar";
             });
         }
