@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NutriCam AI</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Markdown Parser para a resposta da IA -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Esconde input file padrão */
+        input[type="file"] { display: none; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
+
+    <!-- Header & Config -->
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-sm p-4 mb-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold text-gray-800"><i class="fas fa-carrot text-orange-500 mr-2"></i>NutriCam</h1>
+        <button onclick="toggleConfig()" class="text-gray-500 hover:text-blue-600 p-2">
+            <i class="fas fa-cog text-lg"></i>
+        </button>
+    </div>
+
+    <!-- Painel de Configuração (API Key) -->
+    <div id="configPanel" class="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 mb-4 hidden border-l-4 border-blue-500">
+        <h2 class="text-lg font-semibold mb-2">Configuração</h2>
+        <p class="text-sm text-gray-600 mb-3">Insira sua API Key do Google Gemini (AI Studio). Ela será salva apenas no seu navegador.</p>
+        <input type="password" id="apiKeyInput" placeholder="Cole sua API Key aqui..." 
+            class="w-full p-3 border rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3">
+        <button onclick="saveApiKey()" class="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition">
+            Salvar Chave
+        </button>
+        <p id="keyStatus" class="text-xs mt-2 text-center text-gray-400">Nenhuma chave salva.</p>
+    </div>
+
+    <!-- Área Principal -->
+    <div class="w-full max-w-md flex flex-col gap-4">
+        
+        <!-- Área de Upload/Camera -->
+        <label for="imageInput" class="cursor-pointer group relative w-full h-64 bg-white rounded-2xl shadow-sm border-2 border-dashed border-gray-300 hover:border-blue-400 flex flex-col justify-center items-center transition overflow-hidden">
+            <div id="uploadPlaceholder" class="flex flex-col items-center text-gray-400 group-hover:text-blue-500">
+                <i class="fas fa-camera text-4xl mb-2"></i>
+                <span class="text-sm font-medium">Toque para fotografar</span>
+            </div>
+            <img id="imagePreview" class="absolute inset-0 w-full h-full object-cover hidden" />
+        </label>
+        <input type="file" id="imageInput" accept="image/*" capture="environment" onchange="handleImageSelect(event)">
+
+        <!-- Botão de Análise -->
+        <button id="analyzeBtn" onclick="analyzeFood()" disabled 
+            class="w-full bg-gray-300 text-gray-500 font-bold py-4 rounded-xl shadow-sm transition flex justify-center items-center gap-2 cursor-not-allowed">
+            <span>Analisar Calorias</span>
+            <i class="fas fa-magic"></i>
+        </button>
+
+        <!-- Loading -->
+        <div id="loading" class="hidden flex-col items-center justify-center py-4">
+            <div class="loader mb-2"></div>
+            <p class="text-gray-500 text-sm animate-pulse">Consultando Nutricionista IA...</p>
+        </div>
+
+        <!-- Resultado -->
+        <div id="resultCard" class="hidden w-full bg-white rounded-2xl shadow-md p-5 border-t-4 border-green-500">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 class="text-lg font-bold text-gray-800">Resultado</h3>
+                <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Gemini 1.5 Flash</span>
+            </div>
+            <div id="resultContent" class="prose prose-sm text-gray-700">
+                <!-- Conteúdo Markdown aqui -->
+            </div>
+            
+            <!-- Contexto Pessoal -->
+            <div class="mt-4 pt-3 border-t text-xs text-gray-500 italic">
+                <i class="fas fa-info-circle mr-1"></i> Lembre-se: Isso é uma estimativa de IA.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Lógica de Estado ---
+        let base64Image = null;
+        
+        // --- Inicialização ---
+        window.onload = () => {
+            const key = localStorage.getItem('gemini_api_key');
+            const statusEl = document.getElementById('keyStatus');
+            if(key) {
+                document.getElementById('apiKeyInput').value = key;
+                statusEl.innerText = "✅ Chave configurada e pronta.";
+                statusEl.classList.replace('text-gray-400', 'text-green-600');
+            } else {
+                toggleConfig(); // Abre config se não tiver chave
+            }
+        };
+
+        // --- Funções de UI ---
+        function toggleConfig() {
+            const panel = document.getElementById('configPanel');
+            panel.classList.toggle('hidden');
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            if(key) {
+                localStorage.setItem('gemini_api_key', key);
+                alert('Chave salva com segurança no seu navegador!');
+                toggleConfig();
+                window.location.reload();
+            } else {
+                alert('Por favor, insira uma chave válida.');
+            }
+        }
+
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                base64Image = e.target.result.split(',')[1]; // Remove o header data:image...
+                
+                // Mostrar preview
+                const preview = document.getElementById('imagePreview');
+                const placeholder = document.getElementById('uploadPlaceholder');
+                const btn = document.getElementById('analyzeBtn');
+
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+
+                // Ativar botão
+                btn.disabled = false;
+                btn.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+                btn.classList.add('bg-gradient-to-r', 'from-blue-600', 'to-blue-500', 'text-white', 'hover:shadow-lg');
+            }
+            reader.readAsDataURL(file);
+        }
+
+        // --- Lógica da IA (Gemini) ---
+        async function analyzeFood() {
+            const apiKey = localStorage.getItem('gemini_api_key');
+            if (!apiKey) {
+                alert("Configure sua API Key primeiro (ícone de engrenagem).");
+                toggleConfig();
+                return;
+            }
+
+            // UI Updates
+            const btn = document.getElementById('analyzeBtn');
+            const loading = document.getElementById('loading');
+            const resultCard = document.getElementById('resultCard');
+            const resultContent = document.getElementById('resultContent');
+
+            btn.classList.add('hidden');
+            loading.classList.remove('hidden');
+            resultCard.classList.add('hidden');
+
+            try {
+                // Prompt otimizado para seu objetivo
+                const prompt = `
+                Aja como um nutricionista esportivo experiente. Eu tenho 1,74m, 91kg e preciso emagrecer mantendo massa magra.
+                Analise esta foto de comida.
+                1. Liste os alimentos identificados.
+                2. Estime a quantidade (gramas/unidades) e calorias de cada um.
+                3. Dê o total calórico da refeição.
+                4. Dê um breve feedback se isso é bom para meu objetivo (foco em proteína/saciedade).
+                Seja direto e use formatação markdown com tabelas se possível. Responda em Português.
+                `;
+
+                const payload = {
+                    contents: [{
+                        parts: [
+                            { text: prompt },
+                            { inline_data: { mime_type: "image/jpeg", data: base64Image } }
+                        ]
+                    }]
+                };
+
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error.message);
+                }
+
+                const aiText = data.candidates[0].content.parts[0].text;
+                
+                // Renderizar Markdown
+                resultContent.innerHTML = marked.parse(aiText);
+                resultCard.classList.remove('hidden');
+
+            } catch (error) {
+                alert(`Erro na análise: ${error.message}`);
+            } finally {
+                loading.classList.add('hidden');
+                btn.classList.remove('hidden');
+                btn.innerText = "Analisar Outra Foto";
+            }
+        }
+    </script>
+</body>
+</html>
