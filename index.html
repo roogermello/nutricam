@@ -16,8 +16,9 @@
 
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        /* Loader animado */
         .loader {
-            border: 4px solid #f3f3f3;
+            border: 4px solid #e5e7eb;
             border-top: 4px solid #3b82f6;
             border-radius: 50%;
             width: 30px;
@@ -25,15 +26,6 @@
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* Esconde input file padrão mas mantem acessível para o label */
-        .hidden-input {
-            opacity: 0;
-            width: 0.1px;
-            height: 0.1px;
-            position: absolute;
-            z-index: -1;
-        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
@@ -50,31 +42,32 @@
     <div id="configPanel" class="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 mb-4 hidden border-l-4 border-blue-500 relative z-50">
         <h2 class="text-lg font-semibold mb-2">Configuração</h2>
         
-        <!-- API Key -->
         <label class="block text-xs font-bold text-gray-700 mb-1">API Key (Gemini)</label>
-        <input type="password" id="apiKeyInput" placeholder="Cole sua API Key..." 
-            class="w-full p-2 border rounded bg-gray-50 mb-3 text-sm">
+        <input type="password" id="apiKeyInput" placeholder="Cole sua API Key aqui..." 
+            class="w-full p-2 border rounded bg-gray-50 mb-3 text-sm font-mono">
 
-        <!-- Seletor de Modelo (Atualizado) -->
-        <label class="block text-xs font-bold text-gray-700 mb-1">Modelo de IA</label>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Modelo Preferido</label>
         <select id="modelSelect" class="w-full p-2 border rounded bg-gray-50 mb-3 text-sm">
-            <option value="gemini-1.5-flash">Gemini 1.5 Flash (Padrão/Rápido)</option>
-            <option value="gemini-1.5-pro">Gemini 1.5 Pro (Mais Preciso)</option>
-            <option value="gemini-pro-vision">Gemini 1.0 Pro Vision (Estável)</option>
+            <option value="gemini-1.5-flash">Gemini 1.5 Flash (Rápido)</option>
+            <option value="gemini-1.5-pro">Gemini 1.5 Pro (Inteligente)</option>
+            <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash Exp (Novo)</option>
         </select>
-        <p class="text-[10px] text-gray-500 mb-4">Se der erro, tente mudar para o "Pro Vision".</p>
+        
+        <div class="bg-yellow-50 p-2 rounded text-[10px] text-yellow-800 mb-3">
+            <strong>Dica:</strong> Se der erro, o app tentará outros modelos automaticamente.
+        </div>
 
         <button onclick="saveConfig()" class="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition">
-            Salvar Configurações
+            Salvar e Fechar
         </button>
-        <p id="keyStatus" class="text-xs mt-2 text-center text-gray-400">Não configurado.</p>
+        <p id="keyStatus" class="text-xs mt-2 text-center text-gray-400">Verificando...</p>
     </div>
 
     <!-- Área Principal -->
     <div class="w-full max-w-md flex flex-col gap-4">
         
         <!-- Área de Upload/Camera -->
-        <div class="relative w-full bg-white rounded-2xl shadow-sm border-2 border-dashed border-gray-300 p-6 flex flex-col items-center justify-center gap-4 transition overflow-hidden" style="min-height: 280px;">
+        <div class="relative w-full bg-white rounded-2xl shadow-sm border-2 border-dashed border-gray-300 p-6 flex flex-col items-center justify-center gap-4 transition overflow-hidden" style="min-height: 300px;">
             
             <!-- Imagem de Preview -->
             <img id="imagePreview" class="absolute inset-0 w-full h-full object-cover hidden z-10 pointer-events-none" />
@@ -84,111 +77,124 @@
                 <i class="fas fa-times text-xl"></i>
             </button>
 
-            <!-- Placeholder e Botões -->
+            <!-- Placeholder -->
             <div id="uploadPlaceholder" class="flex flex-col items-center w-full z-0">
                 <i class="fas fa-utensils text-5xl text-gray-200 mb-4"></i>
-                <p class="text-gray-500 font-medium mb-6 text-center">O que vamos analisar?</p>
+                <p class="text-gray-500 font-medium mb-4 text-center">Tire uma foto do prato</p>
                 
-                <div class="flex flex-col gap-3 w-full">
+                <!-- BOTOES DE ENTRADA (Nativos e Visíveis para compatibilidade máxima) -->
+                <div class="grid grid-cols-1 gap-3 w-full">
                     
-                    <!-- Botão Câmera (Tag LABEL nativa - mais robusto) -->
-                    <label for="cameraInput" class="w-full bg-blue-50 text-blue-600 py-4 rounded-xl font-bold hover:bg-blue-100 transition flex items-center justify-center gap-3 border border-blue-100 cursor-pointer shadow-sm active:scale-95">
-                        <i class="fas fa-camera text-xl"></i>
-                        <span>Tirar Foto</span>
-                    </label>
-                    
-                    <!-- Botão Galeria (Tag LABEL nativa) -->
-                    <label for="galleryInput" class="w-full bg-gray-50 text-gray-600 py-4 rounded-xl font-bold hover:bg-gray-100 transition flex items-center justify-center gap-3 border border-gray-200 cursor-pointer shadow-sm active:scale-95">
-                        <i class="fas fa-images text-xl"></i>
-                        <span>Abrir Galeria</span>
-                    </label>
+                    <!-- Botão Câmera Real -->
+                    <div class="relative">
+                        <input type="file" id="cameraInput" accept="image/*" capture="environment" 
+                            onchange="handleImageSelect(event)"
+                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
+                        <div class="w-full bg-blue-50 text-blue-600 py-4 rounded-xl font-bold border border-blue-100 flex items-center justify-center gap-2 hover:bg-blue-100 transition">
+                            <i class="fas fa-camera text-xl"></i>
+                            <span>Tirar Foto</span>
+                        </div>
+                    </div>
 
+                    <!-- Botão Galeria -->
+                    <div class="relative">
+                        <input type="file" id="galleryInput" accept="image/*" 
+                            onchange="handleImageSelect(event)"
+                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
+                        <div class="w-full bg-gray-50 text-gray-600 py-4 rounded-xl font-bold border border-gray-200 flex items-center justify-center gap-2 hover:bg-gray-100 transition">
+                            <i class="fas fa-images text-xl"></i>
+                            <span>Galeria</span>
+                        </div>
+                    </div>
                 </div>
+                
+                <p class="text-[10px] text-gray-400 mt-4 text-center px-4">
+                    Se abrir "Arquivos", procure o ícone de câmera dentro dele.
+                </p>
             </div>
         </div>
 
-        <!-- Inputs Reais (Controlados pelos Labels acima) -->
-        <input type="file" id="cameraInput" class="hidden-input" accept="image/*" capture="environment" onchange="handleImageSelect(event)">
-        <input type="file" id="galleryInput" class="hidden-input" accept="image/*" onchange="handleImageSelect(event)">
-
-
         <!-- Botão de Análise -->
-        <button id="analyzeBtn" onclick="analyzeFood()" disabled 
+        <button id="analyzeBtn" onclick="startAnalysis()" disabled 
             class="w-full bg-gray-300 text-gray-500 font-bold py-4 rounded-xl shadow-sm transition flex justify-center items-center gap-2 cursor-not-allowed">
             <span>Analisar Calorias</span>
             <i class="fas fa-magic"></i>
         </button>
 
         <!-- Loading -->
-        <div id="loading" class="hidden flex-col items-center justify-center py-4">
+        <div id="loading" class="hidden flex-col items-center justify-center py-4 bg-white rounded-xl shadow-sm">
             <div class="loader mb-2"></div>
-            <p class="text-gray-500 text-sm animate-pulse">Nutricionista pensando...</p>
+            <p id="loadingText" class="text-gray-500 text-sm animate-pulse">Iniciando análise...</p>
         </div>
 
         <!-- Resultado -->
         <div id="resultCard" class="hidden w-full bg-white rounded-2xl shadow-md p-5 border-t-4 border-green-500">
             <div class="flex justify-between items-center mb-4 border-b pb-2">
-                <h3 class="text-lg font-bold text-gray-800">Análise</h3>
-                <span id="modelBadge" class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Gemini</span>
+                <h3 class="text-lg font-bold text-gray-800">Resultado</h3>
+                <span id="usedModelBadge" class="text-[10px] bg-green-100 text-green-800 px-2 py-1 rounded-full uppercase">IA</span>
             </div>
-            <div id="resultContent" class="prose prose-sm text-gray-700"></div>
+            <div id="resultContent" class="prose prose-sm text-gray-700 leading-relaxed"></div>
             
             <div class="mt-4 pt-3 border-t text-xs text-gray-500 italic">
-                <i class="fas fa-info-circle mr-1"></i> Estimativa AI. Consulte um profissional.
+                <i class="fas fa-info-circle mr-1"></i> Estimativa baseada em IA.
             </div>
         </div>
     </div>
 
     <script>
-        // --- Lógica de Estado ---
+        // --- Variáveis Globais ---
         let base64Image = null;
+        // Lista de modelos para tentar em ordem (Fallback System)
+        const MODEL_FALLBACK_CHAIN = [
+            'gemini-1.5-flash',
+            'gemini-1.5-pro',
+            'gemini-2.0-flash-exp'
+        ];
         
         // --- Inicialização ---
         window.onload = () => {
-            const key = localStorage.getItem('gemini_api_key');
-            // Resetar modelo para o padrão estável se estiver com valor antigo
-            let model = localStorage.getItem('gemini_model');
-            if (!model || model.includes('latest')) {
-                model = 'gemini-1.5-flash';
-                localStorage.setItem('gemini_model', model);
-            }
-            
-            document.getElementById('modelSelect').value = model;
-
-            const statusEl = document.getElementById('keyStatus');
-            if(key) {
-                document.getElementById('apiKeyInput').value = key;
-                statusEl.innerText = "✅ Configurado (" + model + ")";
-                statusEl.classList.replace('text-gray-400', 'text-green-600');
-            } else {
-                toggleConfig(); 
-            }
+            loadConfig();
         };
 
-        // --- Configuração ---
+        function loadConfig() {
+            const key = localStorage.getItem('gemini_api_key');
+            let model = localStorage.getItem('gemini_model') || 'gemini-1.5-flash';
+            
+            // Limpeza preventiva de inputs sujos
+            if (model.includes('latest')) { 
+                model = 'gemini-1.5-flash'; 
+                localStorage.setItem('gemini_model', model);
+            }
+
+            document.getElementById('modelSelect').value = model;
+            const statusEl = document.getElementById('keyStatus');
+            
+            if(key) {
+                document.getElementById('apiKeyInput').value = key;
+                statusEl.innerHTML = `<span class="text-green-600 font-bold">✅ Chave Configurada</span>`;
+            } else {
+                statusEl.innerText = "Nenhuma chave salva.";
+                toggleConfig();
+            }
+        }
+
         function toggleConfig() {
             document.getElementById('configPanel').classList.toggle('hidden');
         }
 
         function saveConfig() {
+            // .trim() remove espaços em branco antes e depois (CRUCIAL)
             const key = document.getElementById('apiKeyInput').value.trim();
             const model = document.getElementById('modelSelect').value;
 
-            if(key) {
+            if(key.length > 10) {
                 localStorage.setItem('gemini_api_key', key);
                 localStorage.setItem('gemini_model', model);
-                
-                alert('Configurações salvas!');
+                alert('Configurações salvas e limpas!');
                 toggleConfig();
-                
-                const statusEl = document.getElementById('keyStatus');
-                statusEl.innerText = "✅ Configurado (" + model + ")";
-                statusEl.classList.replace('text-gray-400', 'text-green-600');
-                
-                // Atualizar badge se visível
-                document.getElementById('modelBadge').innerText = model;
+                loadConfig();
             } else {
-                alert('Insira uma chave válida.');
+                alert('A chave parece muito curta. Verifique se copiou corretamente.');
             }
         }
 
@@ -206,15 +212,15 @@
             btn.classList.remove('bg-gradient-to-r', 'from-blue-600', 'to-blue-500', 'text-white', 'hover:shadow-lg');
             
             document.getElementById('resultCard').classList.add('hidden');
-            
-            // Limpa inputs
-            document.querySelectorAll('input[type="file"]').forEach(i => i.value = '');
+            document.getElementById('cameraInput').value = '';
+            document.getElementById('galleryInput').value = '';
         }
 
         function handleImageSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
 
+            // Feedback visual imediato
             const reader = new FileReader();
             reader.onload = function(e) {
                 base64Image = e.target.result.split(',')[1];
@@ -236,82 +242,94 @@
             reader.readAsDataURL(file);
         }
 
-        // --- IA ---
-        async function analyzeFood() {
+        // --- Lógica Inteligente de Tentativas (Retry Logic) ---
+        async function startAnalysis() {
             const apiKey = localStorage.getItem('gemini_api_key');
-            let model = localStorage.getItem('gemini_model') || 'gemini-1.5-flash';
-            
-            if (!apiKey) {
-                alert("Configure sua API Key primeiro.");
-                toggleConfig();
-                return;
+            if (!apiKey) { alert("Configure sua API Key."); toggleConfig(); return; }
+
+            // UI Setup
+            document.getElementById('analyzeBtn').classList.add('hidden');
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('resultCard').classList.add('hidden');
+            document.getElementById('loadingText').innerText = "Analisando com Gemini...";
+
+            // Tenta o modelo escolhido primeiro, depois o fallback
+            let preferredModel = localStorage.getItem('gemini_model') || 'gemini-1.5-flash';
+            let modelsToTry = [preferredModel, ...MODEL_FALLBACK_CHAIN.filter(m => m !== preferredModel)];
+
+            for (const model of modelsToTry) {
+                try {
+                    document.getElementById('loadingText').innerText = `Tentando modelo: ${model}...`;
+                    console.log(`Tentando: ${model}`);
+                    
+                    const result = await callGeminiAPI(apiKey, model);
+                    
+                    // Sucesso!
+                    renderResult(result, model);
+                    return; // Sai da função
+
+                } catch (error) {
+                    console.warn(`Falha no modelo ${model}:`, error);
+                    // Continua para o próximo modelo no loop
+                }
             }
 
-            const btn = document.getElementById('analyzeBtn');
-            const loading = document.getElementById('loading');
-            const resultCard = document.getElementById('resultCard');
-            const resultContent = document.getElementById('resultContent');
-            const modelBadge = document.getElementById('modelBadge');
+            // Se chegou aqui, todos falharam
+            alert("Erro: Nenhum modelo de IA conseguiu processar. Verifique sua API Key ou tente outra foto.");
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('analyzeBtn').classList.remove('hidden');
+        }
 
-            btn.classList.add('hidden');
-            loading.classList.remove('hidden');
-            resultCard.classList.add('hidden');
-            modelBadge.innerText = model;
+        async function callGeminiAPI(key, model) {
+            const prompt = `
+            Você é um nutricionista esportivo. Perfil: Homem, 1,74m, 91kg (Objetivo: Emagrecer e manter massa magra).
+            Analise a imagem:
+            1. Liste os alimentos.
+            2. Estime gramas e calorias (tabela).
+            3. Dê o total calórico.
+            4. Avalie brevemente se ajuda na saciedade.
+            Responda em Português (Brasil). Use Markdown.
+            `;
 
-            try {
-                // Prompt com seus dados
-                const prompt = `
-                Aja como um nutricionista esportivo experiente.
-                PERFIL: Homem, 1,74m, 91kg. Objetivo: Emagrecer mantendo massa magra. 
-                
-                Analise esta imagem de comida:
-                1. Liste os alimentos.
-                2. Estime (gramas/kcal) de cada item.
-                3. Total calórico.
-                4. Feedback para saciedade e proteína.
-                
-                Seja objetivo. Use tabelas Markdown.
-                `;
+            // Garante URL limpa sem espaços
+            const cleanKey = key.trim();
+            const cleanModel = model.trim();
+            
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModel}:generateContent?key=${cleanKey}`;
 
-                const payload = {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
                     contents: [{
                         parts: [
                             { text: prompt },
                             { inline_data: { mime_type: "image/jpeg", data: base64Image } }
                         ]
                     }]
-                };
+                })
+            });
 
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            const data = await response.json();
 
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await response.json();
-
-                if (data.error) {
-                    console.error("Erro API:", data.error);
-                    throw new Error(`Erro API (${data.error.code}): ${data.error.message}`);
-                }
-
-                if (!data.candidates || !data.candidates[0].content) {
-                    throw new Error("A IA não retornou resposta. Tente outra foto ou modelo nas configurações.");
-                }
-
-                const aiText = data.candidates[0].content.parts[0].text;
-                resultContent.innerHTML = marked.parse(aiText);
-                resultCard.classList.remove('hidden');
-
-            } catch (error) {
-                alert(`Ops! ${error.message}\n\nDica: Tente trocar o modelo para 'Gemini 1.0 Pro Vision' na engrenagem.`);
-            } finally {
-                loading.classList.add('hidden');
-                btn.classList.remove('hidden');
-                btn.innerText = "Analisar Outra Foto";
+            if (!response.ok || data.error) {
+                throw new Error(data.error?.message || response.statusText);
             }
+
+            return data.candidates[0].content.parts[0].text;
+        }
+
+        function renderResult(text, modelUsed) {
+            const resultContent = document.getElementById('resultContent');
+            const resultCard = document.getElementById('resultCard');
+            
+            resultContent.innerHTML = marked.parse(text);
+            document.getElementById('usedModelBadge').innerText = modelUsed;
+            
+            document.getElementById('loading').classList.add('hidden');
+            resultCard.classList.remove('hidden');
+            document.getElementById('analyzeBtn').classList.remove('hidden');
+            document.getElementById('analyzeBtn').innerText = "Analisar Outra Foto";
         }
     </script>
 </body>
