@@ -3,12 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NutriCam V9</title>
+    <title>NutriCam V9.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; }
+        
+        /* ESTILIZAÇÃO PERSONALIZADA DO MARKDOWN */
+        #markdownContent h1, #markdownContent h2 {
+            color: #4ade80; /* Verde neon para o Total Calórico */
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 0.5rem;
+        }
+        
+        #markdownContent strong {
+            color: #fbbf24; /* Amarelo/Laranja para destaques (Proteína) */
+            font-weight: 900;
+        }
+
+        #markdownContent ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        #markdownContent table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        #markdownContent th {
+            background-color: #334155;
+            color: #94a3b8;
+            font-weight: 600;
+            text-align: left;
+            padding: 10px;
+        }
+
+        #markdownContent td {
+            border-bottom: 1px solid #334155;
+            padding: 10px;
+            color: #e2e8f0;
+        }
+        
+        #markdownContent p {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-4">
@@ -16,7 +67,7 @@
     <!-- Header -->
     <div class="w-full max-w-md flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
         <h1 class="font-bold text-xl flex items-center gap-2">
-            <i class="fas fa-carrot text-green-500"></i> NutriCam <span class="text-xs bg-blue-900 text-blue-200 px-2 rounded">V9</span>
+            <i class="fas fa-carrot text-green-500"></i> NutriCam <span class="text-xs bg-orange-900 text-orange-200 px-2 rounded">V9.1</span>
         </h1>
         <button onclick="toggleConfig()" class="text-slate-400 hover:text-white">
             <i class="fas fa-cog fa-lg"></i>
@@ -95,18 +146,18 @@
                 <h3 class="font-bold text-white">Análise Nutricional</h3>
                 <span id="modelBadge" class="text-[10px] bg-slate-700 px-2 py-1 rounded text-slate-300">IA</span>
             </div>
-            <div id="markdownContent" class="prose prose-invert prose-sm leading-relaxed text-slate-300"></div>
+            <!-- AQUI ESTÁ A MÁGICA DO ESTILO -->
+            <div id="markdownContent"></div>
         </div>
     </div>
 
     <script>
-        // --- 1. LÓGICA DE CONEXÃO E MODELOS (O DIFERENCIAL) ---
+        // --- 1. LÓGICA DE CONEXÃO E MODELOS ---
         
         window.onload = () => {
             const savedKey = localStorage.getItem('nutricam_v9_key');
             if (savedKey) {
                 document.getElementById('apiKeyInput').value = savedKey;
-                // Se já tem chave, tenta listar os modelos silenciosamente ou abre config
                 if(localStorage.getItem('nutricam_v9_model')) {
                     showInterface();
                 } else {
@@ -131,14 +182,11 @@
             status.className = "text-center text-xs text-blue-400 mt-2";
 
             try {
-                // LISTA REAL DO GOOGLE
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
                 const data = await response.json();
 
                 if (data.error) throw new Error(data.error.message);
 
-                // Filtra apenas modelos que geram texto (ignora embedding/audio-only se houver)
-                // e prioriza os "flash" e "pro"
                 const models = data.models.filter(m => 
                     m.supportedGenerationMethods && 
                     m.supportedGenerationMethods.includes("generateContent")
@@ -147,21 +195,17 @@
                 select.innerHTML = "";
                 let foundPreferred = false;
 
-                // Ordena e preenche o select
                 models.sort((a, b) => {
-                    // Coloca flash no topo
                     if (a.name.includes('flash') && !b.name.includes('flash')) return -1;
                     return 0;
                 });
 
                 models.forEach(m => {
                     const option = document.createElement('option');
-                    // O "name" vem como "models/gemini-1.5-flash-001". Usamos esse valor exato.
                     option.value = m.name; 
                     option.text = m.displayName + ` (${m.name.replace('models/', '')})`;
                     select.appendChild(option);
                     
-                    // Tenta pré-selecionar o flash-001 ou flash-latest
                     if (!foundPreferred && m.name.includes('flash')) {
                         option.selected = true;
                         foundPreferred = true;
@@ -169,7 +213,7 @@
                 });
 
                 area.classList.remove('hidden');
-                btn.classList.add('hidden'); // Esconde botão de conectar
+                btn.classList.add('hidden');
                 status.innerText = `Sucesso! ${models.length} modelos encontrados.`;
                 status.className = "text-center text-xs text-green-400 mt-2";
 
@@ -198,7 +242,6 @@
         function toggleConfig() {
             document.getElementById('configPanel').classList.remove('hidden');
             document.getElementById('mainInterface').classList.add('hidden');
-            // Reseta UI de busca se abrir config
             document.getElementById('btnConnect').classList.remove('hidden');
             document.getElementById('modelSelectArea').classList.add('hidden');
         }
@@ -241,10 +284,9 @@
             document.querySelectorAll('input').forEach(i => i.value = '');
         }
 
-        // --- 3. ANÁLISE (USANDO O NOME EXATO DO MODELO) ---
+        // --- 3. ANÁLISE COM FORMATAÇÃO ENRIQUECIDA ---
         async function analyze() {
             const key = localStorage.getItem('nutricam_v9_key');
-            // Aqui está o segredo: usamos o nome exato que veio da lista (ex: models/gemini-1.5-flash)
             let modelName = localStorage.getItem('nutricam_v9_model');
 
             if (!key || !modelName) return toggleConfig();
@@ -257,12 +299,6 @@
             errorLog.classList.add('hidden');
 
             try {
-                // Se o nome já vier com "models/", a URL deve ser montada com cuidado.
-                // A API aceita https://.../v1beta/models/gemini-pro:generateContent
-                // Mas se a variavel modelName já for "models/gemini-pro", a URL ficaria "v1beta/models/models/gemini-pro"
-                // O Fetch do debug retornou nomes como "models/gemini-1.5-flash".
-                
-                // Correção de URL para evitar duplicação ou falta do prefixo
                 let cleanModelName = modelName;
                 if (cleanModelName.startsWith('models/')) {
                     cleanModelName = cleanModelName.replace('models/', '');
@@ -270,13 +306,19 @@
 
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModelName}:generateContent?key=${key}`;
 
+                // PROMPT AJUSTADO PARA FORÇAR FORMATAÇÃO VISUAL
                 const prompt = `
                 Aja como nutricionista esportivo (Homem, 91kg, ombro lesionado).
                 Analise a imagem:
+                
                 1. Alimentos presentes.
                 2. Tabela (Item | Qtd | Kcal | Proteína).
-                3. Total Calórico.
-                4. Breve análise de saciedade.
+                
+                IMPORTANTE:
+                3. Escreva o TOTAL CALÓRICO usando ## (formato de título 2) para ficar grande e visível. Ex: "## Total: 500 Kcal".
+                4. Coloque valores importantes de proteína em **negrito**.
+                
+                5. Breve análise de saciedade.
                 Responda em Português e Markdown.
                 `;
 
