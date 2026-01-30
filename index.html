@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NutriCam V9.1</title>
+    <title>NutriCam V9.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -36,10 +36,12 @@
             width: 100%;
             border-collapse: collapse;
             margin: 1rem 0;
-            font-size: 0.9rem;
+            font-size: 0.8rem; /* Fonte um pouco menor para caber mais colunas */
             background-color: #1e293b;
             border-radius: 8px;
             overflow: hidden;
+            display: block; /* Permite scroll horizontal em telas pequenas */
+            overflow-x: auto;
         }
 
         #markdownContent th {
@@ -47,13 +49,15 @@
             color: #94a3b8;
             font-weight: 600;
             text-align: left;
-            padding: 10px;
+            padding: 8px;
+            white-space: nowrap;
         }
 
         #markdownContent td {
             border-bottom: 1px solid #334155;
-            padding: 10px;
+            padding: 8px;
             color: #e2e8f0;
+            white-space: nowrap;
         }
         
         #markdownContent p {
@@ -67,7 +71,7 @@
     <!-- Header -->
     <div class="w-full max-w-md flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
         <h1 class="font-bold text-xl flex items-center gap-2">
-            <i class="fas fa-carrot text-green-500"></i> NutriCam <span class="text-xs bg-orange-900 text-orange-200 px-2 rounded">V9.1</span>
+            <i class="fas fa-carrot text-green-500"></i> NutriCam <span class="text-xs bg-purple-900 text-purple-200 px-2 rounded">V9.2</span>
         </h1>
         <button onclick="toggleConfig()" class="text-slate-400 hover:text-white">
             <i class="fas fa-cog fa-lg"></i>
@@ -312,7 +316,7 @@
                 Analise a imagem:
                 
                 1. Alimentos presentes.
-                2. Tabela (Item | Qtd | Kcal | Proteína).
+                2. Tabela Detalhada (Item | Qtd | Kcal | Proteína | Carboidrato | Gordura).
                 
                 IMPORTANTE:
                 3. Escreva o TOTAL CALÓRICO usando ## (formato de título 2) para ficar grande e visível. Ex: "## Total: 500 Kcal".
