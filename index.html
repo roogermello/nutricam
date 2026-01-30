@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NutriCam V11 - Lab</title>
+    <title>NutriCam Personal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -28,33 +28,49 @@
         }
         #markdownContent th { background-color: #334155; color: #94a3b8; font-weight: 600; text-align: left; padding: 10px 8px; }
         #markdownContent td { border-bottom: 1px solid #334155; padding: 10px 8px; color: #e2e8f0; }
+        #markdownContent p { line-height: 1.6; color: #cbd5e1; margin-bottom: 10px; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-4">
 
-    <!-- Header -->
+    <!-- Header Personalizado -->
     <div class="w-full max-w-md flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
+        <!-- Logo e Título -->
         <h1 class="font-bold text-xl flex items-center gap-2">
-            <i class="fas fa-carrot text-green-500"></i> NutriCam <span class="text-xs bg-red-600 text-white px-2 rounded">LAB V11</span>
+            <i class="fas fa-carrot text-green-500"></i> NutriCam 
         </h1>
-        <button onclick="toggleConfig()" class="text-slate-400 hover:text-white">
-            <i class="fas fa-cog fa-lg"></i>
-        </button>
+
+        <!-- Área do Usuário (Avatar + Config) -->
+        <div class="flex items-center gap-3">
+            <!-- AVATAR DO USUÁRIO -->
+            <!-- Importante: Salve sua imagem como 'avatar.jpg' no GitHub -->
+            <div class="relative w-10 h-10">
+                <img src="avatar.jpg" alt="Perfil" class="w-full h-full rounded-full object-cover border-2 border-green-500 shadow-lg shadow-green-500/20" onerror="this.style.display='none'">
+                <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-slate-900 rounded-full"></div>
+            </div>
+
+            <!-- Botão de Configuração -->
+            <button onclick="toggleConfig()" class="text-slate-400 hover:text-white transition bg-slate-800 p-2 rounded-full hover:bg-slate-700">
+                <i class="fas fa-cog"></i>
+            </button>
+        </div>
     </div>
 
     <!-- Painel de Configuração -->
-    <div id="configPanel" class="w-full max-w-md bg-slate-800 rounded-xl p-5 mb-6 border border-slate-600">
-        <h2 class="font-bold text-slate-200 mb-3 text-sm uppercase">1. Conexão</h2>
-        <input type="password" id="apiKeyInput" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-lg text-white text-xs font-mono mb-3 focus:border-blue-500 outline-none" placeholder="Cole sua API Key aqui...">
+    <div id="configPanel" class="w-full max-w-md bg-slate-800 rounded-xl p-5 mb-6 border border-slate-600 shadow-xl">
+        <h2 class="font-bold text-slate-200 mb-3 text-sm uppercase flex items-center gap-2">
+            <i class="fas fa-plug"></i> Conexão API
+        </h2>
+        <input type="password" id="apiKeyInput" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-lg text-white text-xs font-mono mb-3 focus:border-blue-500 outline-none transition" placeholder="Cole sua API Key aqui...">
         
-        <button onclick="fetchModels()" id="btnConnect" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg mb-4 transition flex justify-center items-center gap-2">
+        <button onclick="fetchModels()" id="btnConnect" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg mb-4 transition flex justify-center items-center gap-2 shadow-lg">
             <span>📡 Conectar e Buscar Modelos</span>
         </button>
 
         <div id="modelSelectArea" class="hidden animate-fade-in">
-            <label class="text-xs text-slate-400 block mb-1">2. Escolha um Modelo:</label>
+            <label class="text-xs text-slate-400 block mb-1">Modelo Selecionado:</label>
             <select id="modelSelect" class="w-full p-3 bg-slate-900 border border-green-500 rounded-lg text-white text-sm mb-3"></select>
-            <button onclick="saveConfig()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg transition">✅ Confirmar</button>
+            <button onclick="saveConfig()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg transition shadow-lg">✅ Salvar Configuração</button>
         </div>
         <p id="statusMsg" class="text-center text-xs text-slate-400 mt-2"></p>
     </div>
@@ -63,78 +79,38 @@
     <div id="mainInterface" class="w-full max-w-md hidden">
         
         <!-- Preview -->
-        <div id="previewContainer" class="hidden relative w-full aspect-video bg-slate-800 rounded-xl mb-4 overflow-hidden border border-slate-600">
-            <img id="imagePreview" class="w-full h-full object-cover opacity-80">
-            <button onclick="resetImage()" class="absolute top-2 right-2 bg-black/50 p-2 rounded-full text-white hover:bg-red-500 transition">
+        <div id="previewContainer" class="hidden relative w-full aspect-video bg-slate-800 rounded-xl mb-6 overflow-hidden border border-slate-600 shadow-2xl">
+            <img id="imagePreview" class="w-full h-full object-cover opacity-90">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent pointer-events-none"></div>
+            <button onclick="resetImage()" class="absolute top-2 right-2 bg-black/60 backdrop-blur p-2 rounded-full text-white hover:bg-red-500 transition border border-white/10">
                 <i class="fas fa-times"></i>
             </button>
         </div>
 
-        <!-- ÁREA DE TESTE DE HARDWARE (3 Protocolos Diferentes) -->
-        <div id="uploadButtons" class="flex flex-col gap-3">
-            <div class="p-3 bg-slate-800/50 rounded border border-slate-700 mb-2">
-                <p class="text-[10px] text-orange-300 mb-2 font-bold"><i class="fas fa-flask"></i> TESTE DE PROTOCOLO</p>
-                <p class="text-[10px] text-slate-400 mb-3">Seu Android memorizou "abrir arquivos". Tente os botões abaixo para forçar a câmera:</p>
+        <!-- BOTÃO DE UPLOAD (Limpo e Direto) -->
+        <div id="uploadButtons" class="w-full">
+            <label class="group relative w-full bg-slate-800 hover:bg-slate-750 border-2 border-dashed border-slate-600 hover:border-blue-500 rounded-2xl cursor-pointer transition-all duration-300 flex flex-col items-center justify-center py-10 shadow-lg">
+                <div class="bg-blue-600/20 p-4 rounded-full mb-3 group-hover:scale-110 transition duration-300">
+                    <i class="fas fa-camera text-3xl text-blue-400"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-200 group-hover:text-white">Adicionar Foto</h3>
+                <p class="text-xs text-slate-400 mt-1">Galeria ou Câmera Externa</p>
                 
-                <!-- PROTOCOLO 1: Força Bruta (capture=environment) -->
-                <div class="mb-3 relative">
-                    <input type="file" id="input1" accept="image/*" capture="environment" onchange="handleFile(this)" class="absolute inset-0 w-full h-full opacity-0 z-20 cursor-pointer">
-                    <div class="bg-blue-600 text-white p-4 rounded-lg flex items-center gap-3 shadow-lg">
-                        <i class="fas fa-camera text-2xl"></i>
-                        <div>
-                            <p class="font-bold text-sm">Opção 1: Forçar Câmera</p>
-                            <p class="text-[10px] opacity-80">Usa capture="environment"</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- PROTOCOLO 2: Genérico (Sem capture) -->
-                <div class="mb-3 relative">
-                    <input type="file" id="input2" accept="image/*" onchange="handleFile(this)" class="absolute inset-0 w-full h-full opacity-0 z-20 cursor-pointer">
-                    <div class="bg-slate-700 text-slate-200 p-4 rounded-lg flex items-center gap-3 border border-slate-600">
-                        <i class="fas fa-folder-open text-2xl"></i>
-                        <div>
-                            <p class="font-bold text-sm">Opção 2: Padrão (Sem forçar)</p>
-                            <p class="text-[10px] opacity-70">Usa apenas accept="image/*"</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- PROTOCOLO 3: Legado (MIME type específico) -->
-                <div class="relative">
-                    <input type="file" id="input3" accept="image/jpeg" onchange="handleFile(this)" class="absolute inset-0 w-full h-full opacity-0 z-20 cursor-pointer">
-                    <div class="bg-slate-800 text-slate-400 p-4 rounded-lg flex items-center gap-3 border border-slate-700 border-dashed hover:bg-slate-700 transition">
-                        <i class="fas fa-image text-2xl"></i>
-                        <div>
-                            <p class="font-bold text-sm">Opção 3: Modo JPEG</p>
-                            <p class="text-[10px] opacity-70">Usa accept="image/jpeg"</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- INSTRUÇÃO PARA RESETAR O ANDROID -->
-            <details class="bg-red-900/20 p-3 rounded border border-red-900/50">
-                <summary class="text-[10px] text-red-300 font-bold cursor-pointer">Nada funcionou? Clique aqui.</summary>
-                <p class="text-[10px] text-red-200 mt-2 leading-relaxed">
-                    Seu navegador está configurado para "Sempre abrir arquivos" sem perguntar. Para corrigir:
-                    <br>1. Vá em <b>Configurações</b> do celular.
-                    <br>2. <b>Apps</b> > Gerenciar Apps > Chrome (ou seu navegador).
-                    <br>3. Role até o fim e clique em <b>"Limpar Padrões"</b>.
-                </p>
-            </details>
+                <!-- INPUT PADRÃO (Sem capture, permite o seletor do Android) -->
+                <input type="file" accept="image/*" onchange="handleFile(this)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+            </label>
         </div>
 
         <!-- Botão Analisar -->
-        <button id="analyzeBtn" onclick="analyze()" disabled class="w-full mt-4 bg-slate-700 text-slate-500 font-bold py-4 rounded-xl transition cursor-not-allowed flex justify-center items-center gap-2">
+        <button id="analyzeBtn" onclick="analyze()" disabled class="w-full mt-6 bg-slate-800 text-slate-500 font-bold py-4 rounded-xl transition cursor-not-allowed flex justify-center items-center gap-2 border border-slate-700">
             Aguardando foto...
         </button>
 
         <!-- Resultado -->
-        <div id="resultArea" class="hidden mt-6 bg-slate-800 p-6 rounded-xl shadow-xl border-t-4 border-green-500">
+        <div id="resultArea" class="hidden mt-8 bg-slate-800 p-6 rounded-xl shadow-2xl border-t-4 border-green-500 animate-fade-in-up">
             <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-700">
-                <h3 class="font-bold text-white">Análise de Macros</h3>
-                <span id="modelBadge" class="text-[10px] bg-slate-700 px-2 py-1 rounded text-slate-300">IA</span>
+                <h3 class="font-bold text-white flex items-center gap-2"><i class="fas fa-chart-pie text-green-400"></i> Relatório Nutricional</h3>
+                <span id="modelBadge" class="text-[10px] bg-slate-700 px-2 py-1 rounded text-slate-400 border border-slate-600">IA</span>
             </div>
             <div id="markdownContent"></div>
         </div>
@@ -145,10 +121,10 @@
     <script>
         // --- 1. CONFIGURAÇÃO ---
         window.onload = () => {
-            const savedKey = localStorage.getItem('nutricam_v11_key');
+            const savedKey = localStorage.getItem('nutricam_stable_key');
             if (savedKey) {
                 document.getElementById('apiKeyInput').value = savedKey;
-                if(localStorage.getItem('nutricam_v11_model')) {
+                if(localStorage.getItem('nutricam_stable_model')) {
                     showInterface();
                 } else {
                     document.getElementById('configPanel').classList.remove('hidden');
@@ -167,7 +143,7 @@
 
             if (key.length < 10) return alert("Chave muito curta.");
 
-            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Buscando...`;
+            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Conectando...`;
             status.innerText = "Consultando API...";
 
             try {
@@ -183,6 +159,7 @@
                 select.innerHTML = "";
                 let foundPreferred = false;
                 
+                // Ordena priorizando Flash
                 models.sort((a, b) => {
                     if (a.name.includes('flash') && !b.name.includes('flash')) return -1;
                     return 0;
@@ -214,8 +191,8 @@
         function saveConfig() {
             const key = document.getElementById('apiKeyInput').value.trim();
             const model = document.getElementById('modelSelect').value;
-            localStorage.setItem('nutricam_v11_key', key);
-            localStorage.setItem('nutricam_v11_model', model);
+            localStorage.setItem('nutricam_stable_key', key);
+            localStorage.setItem('nutricam_stable_model', model);
             showInterface();
         }
 
@@ -231,7 +208,7 @@
             document.getElementById('modelSelectArea').classList.add('hidden');
         }
 
-        // --- 2. INPUT HANDLER ---
+        // --- 2. FILE HANDLING ---
         let base64Image = null;
 
         function handleFile(input) {
@@ -249,8 +226,8 @@
                 
                 const btn = document.getElementById('analyzeBtn');
                 btn.disabled = false;
-                btn.className = "w-full mt-4 bg-green-600 hover:bg-green-500 text-white font-bold py-4 rounded-xl transition shadow-lg flex justify-center items-center gap-2";
-                btn.innerHTML = `<i class="fas fa-magic"></i> Analisar Macros`;
+                btn.className = "w-full mt-6 bg-green-600 hover:bg-green-500 text-white font-bold py-4 rounded-xl transition shadow-lg shadow-green-900/20 flex justify-center items-center gap-2 transform active:scale-95";
+                btn.innerHTML = `<i class="fas fa-magic"></i> Analisar Foto`;
             };
             reader.readAsDataURL(file);
         }
@@ -263,19 +240,16 @@
             
             const btn = document.getElementById('analyzeBtn');
             btn.disabled = true;
-            btn.className = "w-full mt-4 bg-slate-700 text-slate-500 font-bold py-4 rounded-xl transition cursor-not-allowed flex justify-center items-center gap-2";
+            btn.className = "w-full mt-6 bg-slate-800 text-slate-500 font-bold py-4 rounded-xl transition cursor-not-allowed flex justify-center items-center gap-2 border border-slate-700";
             btn.innerHTML = "Aguardando foto...";
             
-            // Limpa todos os inputs
-            document.getElementById('input1').value = '';
-            document.getElementById('input2').value = '';
-            document.getElementById('input3').value = '';
+            document.querySelectorAll('input').forEach(i => i.value = '');
         }
 
-        // --- 3. ANÁLISE ---
+        // --- 3. ANÁLISE (Prompt Nutricional Completo) ---
         async function analyze() {
-            const key = localStorage.getItem('nutricam_v11_key');
-            let modelName = localStorage.getItem('nutricam_v11_model');
+            const key = localStorage.getItem('nutricam_stable_key');
+            let modelName = localStorage.getItem('nutricam_stable_model');
 
             if (!key || !modelName) return toggleConfig();
 
@@ -283,30 +257,29 @@
             const errorLog = document.getElementById('errorLog');
             
             btn.disabled = true;
-            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Processando...`;
+            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Analisando Alimentos...`;
             errorLog.classList.add('hidden');
 
             try {
-                let cleanModelName = modelName;
-                if (cleanModelName.startsWith('models/')) {
-                    cleanModelName = cleanModelName.replace('models/', '');
-                }
-
+                let cleanModelName = modelName.startsWith('models/') ? modelName.replace('models/', '') : modelName;
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModelName}:generateContent?key=${key}`;
 
                 const prompt = `
-                Aja como nutricionista esportivo. Perfil: Homem, 91kg.
-                Analise a imagem da refeição e siga este formato ESTRITO (comece direto no ponto 1):
+                Aja como nutricionista esportivo.
+                Perfil: Homem, 91kg, ombro lesionado (foco em manutenção de massa magra/emagrecimento).
                 
-                1. Alimentos identificados.
-                2. Tabela Nutricional Completa (use markdown table):
+                Analise a imagem da refeição:
+                1. Liste os alimentos.
+                2. Gere uma Tabela Nutricional (markdown):
                 | Item | Qtd (est) | Kcal | Prot (g) | Carb (g) | Gord (g) |
                 |---|---|---|---|---|---|
                 
-                IMPORTANTE:
-                3. TOTAL CALÓRICO usando formato de título Markdown (## Total: XXX Kcal).
-                4. TOTAL DE PROTEÍNA em **negrito** (Ex: **Total Prot: 40g**).
-                5. Análise de saciedade para quem quer emagrecer mantendo massa magra.
+                3. Resumo Final:
+                   - TOTAL CALÓRICO (Use ## para destaque).
+                   - TOTAL PROTEÍNA (Use **negrito**).
+                   - Breve comentário sobre a qualidade da refeição para o objetivo.
+                
+                Responda em Português.
                 `;
 
                 const response = await fetch(url, {
@@ -336,7 +309,7 @@
             } catch (error) {
                 errorLog.classList.remove('hidden');
                 errorLog.innerText = `ERRO: ${error.message}`;
-                alert("Erro na análise.");
+                alert("Erro na análise. Tente novamente.");
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = `<i class="fas fa-magic"></i> Analisar Novamente`;
