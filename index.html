@@ -54,17 +54,44 @@
     <!-- Área Principal -->
     <div class="w-full max-w-md flex flex-col gap-4">
         
-        <!-- Área de Upload/Camera -->
-        <label for="imageInput" class="cursor-pointer group relative w-full h-64 bg-white rounded-2xl shadow-sm border-2 border-dashed border-gray-300 hover:border-blue-400 flex flex-col justify-center items-center transition overflow-hidden">
-            <div id="uploadPlaceholder" class="flex flex-col items-center text-gray-400 group-hover:text-blue-500">
-                <i class="fas fa-camera text-4xl mb-2"></i>
-                <span class="text-sm font-medium">Toque para Câmera ou Galeria</span>
-                <span class="text-xs text-gray-400 mt-1">(Selecione a opção desejada)</span>
+        <!-- Área de Upload/Camera (NOVO DESIGN COM BOTOES SEPARADOS) -->
+        <div class="relative w-full bg-white rounded-2xl shadow-sm border-2 border-dashed border-gray-300 p-6 flex flex-col items-center justify-center gap-4 transition overflow-hidden" style="min-height: 280px;">
+            
+            <!-- Imagem de Preview (inicialmente oculta) -->
+            <img id="imagePreview" class="absolute inset-0 w-full h-full object-cover hidden z-10" />
+            
+            <!-- Botão de Limpar Preview -->
+            <button id="resetBtn" onclick="resetImage()" class="hidden absolute top-2 right-2 z-20 bg-white/90 p-2 rounded-full text-gray-600 shadow-md hover:text-red-500 hover:bg-white transition">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+
+            <!-- Placeholder e Botões -->
+            <div id="uploadPlaceholder" class="flex flex-col items-center w-full z-0">
+                <i class="fas fa-utensils text-5xl text-gray-200 mb-4"></i>
+                <p class="text-gray-500 font-medium mb-6 text-center">O que vamos analisar?</p>
+                
+                <div class="flex flex-col gap-3 w-full">
+                    <!-- Botão Câmera (Força Câmera) -->
+                    <button onclick="document.getElementById('cameraInput').click()" class="w-full bg-blue-50 text-blue-600 py-4 rounded-xl font-bold hover:bg-blue-100 transition flex items-center justify-center gap-3 border border-blue-100">
+                        <i class="fas fa-camera text-xl"></i>
+                        <span>Abrir Câmera</span>
+                    </button>
+                    
+                    <!-- Botão Galeria (Arquivos) -->
+                    <button onclick="document.getElementById('galleryInput').click()" class="w-full bg-gray-50 text-gray-600 py-4 rounded-xl font-bold hover:bg-gray-100 transition flex items-center justify-center gap-3 border border-gray-200">
+                        <i class="fas fa-images text-xl"></i>
+                        <span>Escolher da Galeria</span>
+                    </button>
+                </div>
             </div>
-            <img id="imagePreview" class="absolute inset-0 w-full h-full object-cover hidden" />
-        </label>
-        <!-- Removido capture="environment" para garantir que o menu de escolha apareça -->
-        <input type="file" id="imageInput" accept="image/*" onchange="handleImageSelect(event)">
+        </div>
+
+        <!-- Inputs Escondidos (Estratégia Dupla Via) -->
+        <!-- Input 1: Força o ambiente (câmera traseira) -->
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="handleImageSelect(event)">
+        <!-- Input 2: Padrão (permite galeria) -->
+        <input type="file" id="galleryInput" accept="image/*" onchange="handleImageSelect(event)">
+
 
         <!-- Botão de Análise -->
         <button id="analyzeBtn" onclick="analyzeFood()" disabled 
@@ -131,6 +158,28 @@
             }
         }
 
+        // Função para Resetar a Imagem (Botão X)
+        function resetImage() {
+            base64Image = null;
+            document.getElementById('imagePreview').classList.add('hidden');
+            document.getElementById('imagePreview').src = '';
+            document.getElementById('resetBtn').classList.add('hidden');
+            document.getElementById('uploadPlaceholder').classList.remove('hidden');
+            
+            // Resetar inputs para permitir selecionar a mesma foto se quiser
+            document.getElementById('cameraInput').value = '';
+            document.getElementById('galleryInput').value = '';
+
+            // Desativar botão de análise
+            const btn = document.getElementById('analyzeBtn');
+            btn.disabled = true;
+            btn.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+            btn.classList.remove('bg-gradient-to-r', 'from-blue-600', 'to-blue-500', 'text-white', 'hover:shadow-lg');
+            
+            // Esconder resultado anterior se houver
+            document.getElementById('resultCard').classList.add('hidden');
+        }
+
         function handleImageSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -142,10 +191,12 @@
                 // Mostrar preview
                 const preview = document.getElementById('imagePreview');
                 const placeholder = document.getElementById('uploadPlaceholder');
+                const resetBtn = document.getElementById('resetBtn');
                 const btn = document.getElementById('analyzeBtn');
 
                 preview.src = e.target.result;
                 preview.classList.remove('hidden');
+                resetBtn.classList.remove('hidden'); // Mostra o botão X
                 placeholder.classList.add('hidden');
 
                 // Ativar botão
