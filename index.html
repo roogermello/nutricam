@@ -3,10 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NutriCam Personal</title>
+    <title>NutriCam Estável</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Marked para Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- html2canvas para salvar imagem -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; }
         
@@ -15,7 +21,7 @@
             color: #4ade80;
             font-size: 1.4rem;
             font-weight: 800;
-            margin-top: 1.5rem;
+            margin-top: 1rem;
             margin-bottom: 0.5rem;
             border-bottom: 1px solid #334155;
             padding-bottom: 0.5rem;
@@ -33,32 +39,18 @@
 </head>
 <body class="min-h-screen flex flex-col items-center p-4">
 
-    <!-- Header Personalizado -->
+    <!-- Header Simples -->
     <div class="w-full max-w-md flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
-        <!-- Logo e Título -->
         <h1 class="font-bold text-xl flex items-center gap-2">
             <i class="fas fa-carrot text-green-500"></i> NutriCam 
         </h1>
-
-        <!-- Área do Usuário (Avatar + Config) -->
-        <div class="flex items-center gap-3">
-            <!-- AVATAR DO USUÁRIO -->
-            <!-- Importante: Salve sua imagem como 'avatar.png' (minúsculo) no GitHub -->
-            <div class="relative w-10 h-10">
-                <!-- Adicionei um ?v=2 para forçar a atualização se o navegador tiver cacheado a antiga -->
-                <img src="avatar.png?v=2" alt="Perfil" class="w-full h-full rounded-full object-cover border-2 border-green-500 shadow-lg shadow-green-500/20" onerror="this.style.display='none'">
-                <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-slate-900 rounded-full"></div>
-            </div>
-
-            <!-- Botão de Configuração -->
-            <button onclick="toggleConfig()" class="text-slate-400 hover:text-white transition bg-slate-800 p-2 rounded-full hover:bg-slate-700">
-                <i class="fas fa-cog"></i>
-            </button>
-        </div>
+        <button onclick="toggleConfig()" class="text-slate-400 hover:text-white transition p-2">
+            <i class="fas fa-cog fa-lg"></i>
+        </button>
     </div>
 
     <!-- Painel de Configuração -->
-    <div id="configPanel" class="w-full max-w-md bg-slate-800 rounded-xl p-5 mb-6 border border-slate-600 shadow-xl">
+    <div id="configPanel" class="w-full max-w-md bg-slate-800 rounded-xl p-5 mb-6 border border-slate-600 shadow-xl hidden">
         <h2 class="font-bold text-slate-200 mb-3 text-sm uppercase flex items-center gap-2">
             <i class="fas fa-plug"></i> Conexão API
         </h2>
@@ -88,7 +80,7 @@
             </button>
         </div>
 
-        <!-- BOTÃO DE UPLOAD (Limpo e Direto) -->
+        <!-- BOTÃO DE UPLOAD -->
         <div id="uploadButtons" class="w-full">
             <label class="group relative w-full bg-slate-800 hover:bg-slate-750 border-2 border-dashed border-slate-600 hover:border-blue-500 rounded-2xl cursor-pointer transition-all duration-300 flex flex-col items-center justify-center py-10 shadow-lg">
                 <div class="bg-blue-600/20 p-4 rounded-full mb-3 group-hover:scale-110 transition duration-300">
@@ -96,8 +88,6 @@
                 </div>
                 <h3 class="text-lg font-bold text-slate-200 group-hover:text-white">Adicionar Foto</h3>
                 <p class="text-xs text-slate-400 mt-1">Galeria ou Câmera Externa</p>
-                
-                <!-- INPUT PADRÃO (Sem capture, permite o seletor do Android) -->
                 <input type="file" accept="image/*" onchange="handleFile(this)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
             </label>
         </div>
@@ -107,14 +97,28 @@
             Aguardando foto...
         </button>
 
-        <!-- Resultado -->
-        <div id="resultArea" class="hidden mt-8 bg-slate-800 p-6 rounded-xl shadow-2xl border-t-4 border-green-500 animate-fade-in-up">
-            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-700">
-                <h3 class="font-bold text-white flex items-center gap-2"><i class="fas fa-chart-pie text-green-400"></i> Relatório Nutricional</h3>
-                <span id="modelBadge" class="text-[10px] bg-slate-700 px-2 py-1 rounded text-slate-400 border border-slate-600">IA</span>
+        <!-- CONTAINER DE RESULTADO (SERÁ CAPTURADO) -->
+        <div id="captureArea" class="hidden mt-8 bg-slate-800 rounded-xl shadow-2xl border-t-4 border-green-500 overflow-hidden">
+            
+            <!-- Foto duplicada aqui para sair no print final -->
+            <div id="printHeader" class="w-full h-40 overflow-hidden relative border-b border-slate-700 hidden">
+                <img id="printImage" class="w-full h-full object-cover opacity-80">
+                <div class="absolute bottom-0 left-0 bg-black/60 px-3 py-1 text-xs text-white">Refeição</div>
             </div>
-            <div id="markdownContent"></div>
+
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-700">
+                    <h3 class="font-bold text-white flex items-center gap-2"><i class="fas fa-chart-pie text-green-400"></i> Relatório Nutricional</h3>
+                    <span id="modelBadge" class="text-[10px] bg-slate-700 px-2 py-1 rounded text-slate-400 border border-slate-600">IA</span>
+                </div>
+                <div id="markdownContent"></div>
+            </div>
         </div>
+
+        <!-- Botão Salvar (Aparece depois) -->
+        <button id="saveBtn" onclick="downloadCard()" class="hidden w-full mt-4 bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-xl shadow-lg transition flex justify-center items-center gap-2">
+            <i class="fas fa-download"></i> Salvar Card na Galeria
+        </button>
         
         <div id="errorLog" class="hidden mt-4 p-3 bg-red-900/50 border border-red-500 rounded text-xs font-mono text-red-200 break-all"></div>
     </div>
@@ -160,7 +164,6 @@
                 select.innerHTML = "";
                 let foundPreferred = false;
                 
-                // Ordena priorizando Flash
                 models.sort((a, b) => {
                     if (a.name.includes('flash') && !b.name.includes('flash')) return -1;
                     return 0;
@@ -222,8 +225,12 @@
                 document.getElementById('imagePreview').src = e.target.result;
                 document.getElementById('previewContainer').classList.remove('hidden');
                 document.getElementById('uploadButtons').classList.add('hidden');
-                document.getElementById('resultArea').classList.add('hidden');
+                document.getElementById('captureArea').classList.add('hidden');
+                document.getElementById('saveBtn').classList.add('hidden');
                 document.getElementById('errorLog').classList.add('hidden');
+                
+                // Prepara imagem para o card de impressão
+                document.getElementById('printImage').src = e.target.result;
                 
                 const btn = document.getElementById('analyzeBtn');
                 btn.disabled = false;
@@ -237,7 +244,8 @@
             base64Image = null;
             document.getElementById('previewContainer').classList.add('hidden');
             document.getElementById('uploadButtons').classList.remove('hidden');
-            document.getElementById('resultArea').classList.add('hidden');
+            document.getElementById('captureArea').classList.add('hidden');
+            document.getElementById('saveBtn').classList.add('hidden');
             
             const btn = document.getElementById('analyzeBtn');
             btn.disabled = true;
@@ -247,7 +255,7 @@
             document.querySelectorAll('input').forEach(i => i.value = '');
         }
 
-        // --- 3. ANÁLISE (Prompt Nutricional Completo) ---
+        // --- 3. ANÁLISE ---
         async function analyze() {
             const key = localStorage.getItem('nutricam_stable_key');
             let modelName = localStorage.getItem('nutricam_stable_model');
@@ -303,9 +311,18 @@
                 const text = data.candidates[0].content.parts[0].text;
                 
                 document.getElementById('markdownContent').innerHTML = marked.parse(text);
-                document.getElementById('resultArea').classList.remove('hidden');
+                
+                // Mostrar Card e Botão Salvar
+                const captureArea = document.getElementById('captureArea');
+                captureArea.classList.remove('hidden');
+                
+                // Mostra a imagem dentro do card também, para o print ficar completo
+                document.getElementById('printHeader').classList.remove('hidden');
+                
                 document.getElementById('modelBadge').innerText = cleanModelName;
-                document.getElementById('resultArea').scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('saveBtn').classList.remove('hidden');
+                
+                captureArea.scrollIntoView({ behavior: 'smooth' });
 
             } catch (error) {
                 errorLog.classList.remove('hidden');
@@ -315,6 +332,30 @@
                 btn.disabled = false;
                 btn.innerHTML = `<i class="fas fa-magic"></i> Analisar Novamente`;
             }
+        }
+
+        // --- 4. FUNÇÃO DE DOWNLOAD ---
+        function downloadCard() {
+            const element = document.getElementById('captureArea');
+            const btn = document.getElementById('saveBtn');
+            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Gerando imagem...`;
+            
+            html2canvas(element, {
+                backgroundColor: "#1e293b", // Fundo escuro garantido
+                scale: 2 // Melhor qualidade
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'NutriCam_Refeicao_' + new Date().toLocaleTimeString() + '.png';
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+                btn.innerHTML = `<i class="fas fa-check"></i> Salvo!`;
+                setTimeout(() => {
+                    btn.innerHTML = `<i class="fas fa-download"></i> Salvar Card na Galeria`;
+                }, 2000);
+            }).catch(err => {
+                alert("Erro ao salvar imagem: " + err);
+                btn.innerHTML = "Erro ao salvar";
+            });
         }
     </script>
 </body>
