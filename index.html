@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NutriCam V15</title>
+    <title>NutriCam V16</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Marked para Markdown -->
@@ -80,8 +80,8 @@
             </button>
         </div>
 
-        <!-- ÁREA DE DESCRIÇÃO OPCIONAL (NOVA) -->
-        <div id="descriptionArea" class="hidden w-full mb-4 animate-fade-in">
+        <!-- ÁREA DE DESCRIÇÃO (COM ID PARA SCROLL) -->
+        <div id="descriptionArea" class="hidden w-full mb-4 animate-fade-in scroll-mt-20">
             <button onclick="toggleDescriptionInput()" class="text-xs text-blue-400 hover:text-blue-300 font-bold mb-2 flex items-center gap-1 transition">
                 <i class="fas fa-pen"></i> Adicionar detalhes dos alimentos (Opcional)
             </button>
@@ -108,10 +108,10 @@
             Aguardando foto...
         </button>
 
-        <!-- CONTAINER DE RESULTADO (CARD PARA SALVAR) -->
+        <!-- CONTAINER DE RESULTADO -->
         <div id="captureArea" class="hidden mt-8 bg-slate-800 rounded-xl shadow-2xl border-t-4 border-green-500 overflow-hidden w-full mx-auto">
             
-            <!-- Foto no Card (Letterbox) -->
+            <!-- Foto no Card -->
             <div id="printHeader" class="w-full h-64 bg-slate-900 flex items-center justify-center relative border-b border-slate-700 hidden">
                 <img id="printImage" class="max-w-full max-h-full object-contain">
                 <div class="absolute bottom-0 left-0 bg-black/70 px-3 py-1 text-[10px] text-white font-mono rounded-tr-lg">
@@ -127,7 +127,7 @@
                     <span class="text-[10px] text-slate-400 font-mono" id="dateLabel"></span>
                 </div>
                 
-                <!-- Exibe a observação do usuário no card se houver -->
+                <!-- Nota do Usuário -->
                 <div id="userNoteDisplay" class="hidden mb-4 p-3 bg-slate-700/50 rounded-lg border-l-2 border-blue-400">
                     <p class="text-[10px] text-blue-200 font-bold mb-1">OBSERVAÇÃO:</p>
                     <p id="userNoteText" class="text-xs text-slate-300 italic"></p>
@@ -141,10 +141,18 @@
             </div>
         </div>
 
-        <!-- Botão Salvar -->
-        <button id="saveBtn" onclick="downloadCard()" class="hidden w-full mt-4 bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-xl shadow-lg transition flex justify-center items-center gap-2">
-            <i class="fas fa-download"></i> Salvar Card na Galeria
-        </button>
+        <!-- Botões de Ação Pós-Análise -->
+        <div class="w-full flex flex-col gap-3 mt-4">
+            <!-- Botão Salvar -->
+            <button id="saveBtn" onclick="downloadCard()" class="hidden w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-xl shadow-lg transition flex justify-center items-center gap-2">
+                <i class="fas fa-download"></i> Salvar Card na Galeria
+            </button>
+
+            <!-- Botão Refinar (Novo) -->
+            <button id="refineBtn" onclick="enableRefinement()" class="hidden w-full bg-slate-700 hover:bg-slate-600 text-blue-300 font-bold py-3 rounded-xl shadow transition flex justify-center items-center gap-2 border border-slate-600">
+                <i class="fas fa-edit"></i> Corrigir / Adicionar Detalhes
+            </button>
+        </div>
         
         <div id="errorLog" class="hidden mt-4 p-3 bg-red-900/50 border border-red-500 rounded text-xs font-mono text-red-200 break-all"></div>
     </div>
@@ -250,6 +258,28 @@
             }
         }
 
+        // FUNÇÃO NOVA: ATIVAR MODO REFINAMENTO
+        function enableRefinement() {
+            const container = document.getElementById('inputContainer');
+            const descArea = document.getElementById('descriptionArea');
+            const textarea = document.getElementById('userDescription');
+            
+            // Garante que a área de input esteja visível
+            container.classList.remove('hidden');
+            
+            // Rola suavemente até a área de descrição
+            descArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Foca e dá uma dica visual
+            textarea.focus();
+            textarea.classList.add('ring-2', 'ring-blue-500');
+            setTimeout(() => textarea.classList.remove('ring-2', 'ring-blue-500'), 2000);
+            
+            // Muda o texto do botão principal para indicar reanálise
+            const btn = document.getElementById('analyzeBtn');
+            btn.innerHTML = `<i class="fas fa-sync-alt"></i> Reanalisar com Correções`;
+        }
+
         function handleFile(input) {
             const file = input.files[0];
             if (!file) return;
@@ -261,10 +291,11 @@
                 document.getElementById('printImage').src = e.target.result;
                 
                 document.getElementById('previewContainer').classList.remove('hidden');
-                document.getElementById('descriptionArea').classList.remove('hidden'); // Mostra campo de descrição
+                document.getElementById('descriptionArea').classList.remove('hidden');
                 document.getElementById('uploadButtons').classList.add('hidden');
                 document.getElementById('captureArea').classList.add('hidden');
                 document.getElementById('saveBtn').classList.add('hidden');
+                document.getElementById('refineBtn').classList.add('hidden'); // Esconde refinar
                 document.getElementById('errorLog').classList.add('hidden');
                 
                 const btn = document.getElementById('analyzeBtn');
@@ -279,12 +310,13 @@
             base64Image = null;
             document.getElementById('previewContainer').classList.add('hidden');
             document.getElementById('descriptionArea').classList.add('hidden');
-            document.getElementById('inputContainer').classList.add('hidden'); // Esconde textarea
-            document.getElementById('userDescription').value = ''; // Limpa texto
+            document.getElementById('inputContainer').classList.add('hidden');
+            document.getElementById('userDescription').value = '';
             
             document.getElementById('uploadButtons').classList.remove('hidden');
             document.getElementById('captureArea').classList.add('hidden');
             document.getElementById('saveBtn').classList.add('hidden');
+            document.getElementById('refineBtn').classList.add('hidden');
             
             const btn = document.getElementById('analyzeBtn');
             btn.disabled = true;
@@ -294,7 +326,7 @@
             document.querySelectorAll('input').forEach(i => i.value = '');
         }
 
-        // --- 3. ANÁLISE (Com Contexto do Usuário) ---
+        // --- 3. ANÁLISE ---
         async function analyze() {
             const key = localStorage.getItem('nutricam_stable_key');
             let modelName = localStorage.getItem('nutricam_stable_model');
@@ -306,20 +338,18 @@
             const userText = document.getElementById('userDescription').value.trim();
             
             btn.disabled = true;
-            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Analisando...`;
+            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Processando...`;
             errorLog.classList.add('hidden');
 
             try {
                 let cleanModelName = modelName.startsWith('models/') ? modelName.replace('models/', '') : modelName;
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModelName}:generateContent?key=${key}`;
 
-                // Montagem do Contexto Adicional
                 let contextString = "";
                 if (userText) {
-                    contextString = `\n\nCONTEXTO DO USUÁRIO (Importante: use estas informações para corrigir sua identificação visual): "${userText}"`;
+                    contextString = `\n\nCONTEXTO/CORREÇÃO DO USUÁRIO (Prioridade Alta): "${userText}". Se o usuário corrigiu um alimento, use a informação dele.`;
                 }
 
-                // PROMPT
                 const prompt = `
                 Aja como um nutricionista esportivo.
                 Perfil: Homem, 91kg, Mestrando, objetivo de emagrecimento com manutenção de massa magra.
@@ -365,12 +395,11 @@
                 
                 document.getElementById('markdownContent').innerHTML = marked.parse(text);
                 
-                // Mostrar resultados
                 const captureArea = document.getElementById('captureArea');
                 captureArea.classList.remove('hidden');
                 document.getElementById('printHeader').classList.remove('hidden');
                 
-                // Mostrar nota do usuário no card se houver
+                // Exibe nota se houver
                 if (userText) {
                     document.getElementById('userNoteDisplay').classList.remove('hidden');
                     document.getElementById('userNoteText').innerText = userText;
@@ -378,7 +407,10 @@
                     document.getElementById('userNoteDisplay').classList.add('hidden');
                 }
                 
+                // Mostra botões finais
                 document.getElementById('saveBtn').classList.remove('hidden');
+                document.getElementById('refineBtn').classList.remove('hidden'); // Mostra botão de refinar
+                
                 captureArea.scrollIntoView({ behavior: 'smooth' });
 
             } catch (error) {
@@ -395,7 +427,7 @@
         function downloadCard() {
             const element = document.getElementById('captureArea');
             const btn = document.getElementById('saveBtn');
-            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Gerando imagem...`;
+            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Gerando...`;
             
             html2canvas(element, {
                 backgroundColor: "#1e293b", 
