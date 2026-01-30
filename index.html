@@ -16,7 +16,6 @@
 
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        /* Loader animado */
         .loader {
             border: 4px solid #e5e7eb;
             border-top: 4px solid #3b82f6;
@@ -46,20 +45,24 @@
         <input type="password" id="apiKeyInput" placeholder="Cole sua API Key aqui..." 
             class="w-full p-2 border rounded bg-gray-50 mb-3 text-sm font-mono">
 
-        <label class="block text-xs font-bold text-gray-700 mb-1">Modelo Preferido</label>
+        <label class="block text-xs font-bold text-gray-700 mb-1">Modelo de IA</label>
         <select id="modelSelect" class="w-full p-2 border rounded bg-gray-50 mb-3 text-sm">
-            <option value="gemini-1.5-flash">Gemini 1.5 Flash (Rápido)</option>
-            <option value="gemini-1.5-pro">Gemini 1.5 Pro (Inteligente)</option>
-            <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash Exp (Novo)</option>
+            <!-- Usando versões específicas para evitar erro 404 -->
+            <option value="gemini-1.5-flash">Gemini 1.5 Flash (Padrão)</option>
+            <option value="gemini-1.5-flash-001">Gemini 1.5 Flash (v001)</option>
+            <option value="gemini-1.5-flash-002">Gemini 1.5 Flash (v002)</option>
+            <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash (Experimental)</option>
+            <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
         </select>
         
-        <div class="bg-yellow-50 p-2 rounded text-[10px] text-yellow-800 mb-3">
-            <strong>Dica:</strong> Se der erro, o app tentará outros modelos automaticamente.
+        <div class="flex gap-2">
+            <button onclick="saveConfig()" class="flex-1 bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition">
+                Salvar
+            </button>
+            <button onclick="hardReset()" class="bg-red-100 text-red-600 px-3 py-2 rounded-lg hover:bg-red-200 transition" title="Limpar memória">
+                <i class="fas fa-trash"></i> Resetar App
+            </button>
         </div>
-
-        <button onclick="saveConfig()" class="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition">
-            Salvar e Fechar
-        </button>
         <p id="keyStatus" class="text-xs mt-2 text-center text-gray-400">Verificando...</p>
     </div>
 
@@ -82,35 +85,24 @@
                 <i class="fas fa-utensils text-5xl text-gray-200 mb-4"></i>
                 <p class="text-gray-500 font-medium mb-4 text-center">Tire uma foto do prato</p>
                 
-                <!-- BOTOES DE ENTRADA (Nativos e Visíveis para compatibilidade máxima) -->
-                <div class="grid grid-cols-1 gap-3 w-full">
+                <!-- BOTOES DE ENTRADA (MÉTODO CLÁSSICO ROBUSTO) -->
+                <div class="flex flex-col gap-3 w-full">
                     
-                    <!-- Botão Câmera Real -->
-                    <div class="relative">
-                        <input type="file" id="cameraInput" accept="image/*" capture="environment" 
-                            onchange="handleImageSelect(event)"
-                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
-                        <div class="w-full bg-blue-50 text-blue-600 py-4 rounded-xl font-bold border border-blue-100 flex items-center justify-center gap-2 hover:bg-blue-100 transition">
-                            <i class="fas fa-camera text-xl"></i>
-                            <span>Tirar Foto</span>
-                        </div>
-                    </div>
+                    <!-- Botão Câmera -->
+                    <!-- O Label "abraça" o design. Quando clica no design, aciona o input escondido dentro dele -->
+                    <label class="w-full bg-blue-50 text-blue-600 py-4 rounded-xl font-bold border border-blue-100 flex items-center justify-center gap-2 hover:bg-blue-100 transition cursor-pointer active:scale-95">
+                        <i class="fas fa-camera text-xl"></i>
+                        <span>Tirar Foto</span>
+                        <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="handleImageSelect(event)" class="hidden">
+                    </label>
 
                     <!-- Botão Galeria -->
-                    <div class="relative">
-                        <input type="file" id="galleryInput" accept="image/*" 
-                            onchange="handleImageSelect(event)"
-                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
-                        <div class="w-full bg-gray-50 text-gray-600 py-4 rounded-xl font-bold border border-gray-200 flex items-center justify-center gap-2 hover:bg-gray-100 transition">
-                            <i class="fas fa-images text-xl"></i>
-                            <span>Galeria</span>
-                        </div>
-                    </div>
+                    <label class="w-full bg-gray-50 text-gray-600 py-4 rounded-xl font-bold border border-gray-200 flex items-center justify-center gap-2 hover:bg-gray-100 transition cursor-pointer active:scale-95">
+                        <i class="fas fa-images text-xl"></i>
+                        <span>Galeria</span>
+                        <input type="file" id="galleryInput" accept="image/*" onchange="handleImageSelect(event)" class="hidden">
+                    </label>
                 </div>
-                
-                <p class="text-[10px] text-gray-400 mt-4 text-center px-4">
-                    Se abrir "Arquivos", procure o ícone de câmera dentro dele.
-                </p>
             </div>
         </div>
 
@@ -144,12 +136,6 @@
     <script>
         // --- Variáveis Globais ---
         let base64Image = null;
-        // Lista de modelos para tentar em ordem (Fallback System)
-        const MODEL_FALLBACK_CHAIN = [
-            'gemini-1.5-flash',
-            'gemini-1.5-pro',
-            'gemini-2.0-flash-exp'
-        ];
         
         // --- Inicialização ---
         window.onload = () => {
@@ -158,20 +144,22 @@
 
         function loadConfig() {
             const key = localStorage.getItem('gemini_api_key');
-            let model = localStorage.getItem('gemini_model') || 'gemini-1.5-flash';
+            let model = localStorage.getItem('gemini_model');
             
-            // Limpeza preventiva de inputs sujos
-            if (model.includes('latest')) { 
-                model = 'gemini-1.5-flash'; 
+            // Se não tiver modelo ou for um modelo quebrado antigo, reseta para o padrão seguro
+            if (!model || model.includes('latest')) {
+                model = 'gemini-1.5-flash';
                 localStorage.setItem('gemini_model', model);
             }
 
-            document.getElementById('modelSelect').value = model;
+            const select = document.getElementById('modelSelect');
+            if(select) select.value = model;
+
             const statusEl = document.getElementById('keyStatus');
             
             if(key) {
                 document.getElementById('apiKeyInput').value = key;
-                statusEl.innerHTML = `<span class="text-green-600 font-bold">✅ Chave Configurada</span>`;
+                statusEl.innerHTML = `<span class="text-green-600 font-bold">✅ Chave Configurada (${model})</span>`;
             } else {
                 statusEl.innerText = "Nenhuma chave salva.";
                 toggleConfig();
@@ -183,18 +171,25 @@
         }
 
         function saveConfig() {
-            // .trim() remove espaços em branco antes e depois (CRUCIAL)
             const key = document.getElementById('apiKeyInput').value.trim();
             const model = document.getElementById('modelSelect').value;
 
-            if(key.length > 10) {
+            if(key.length > 5) {
                 localStorage.setItem('gemini_api_key', key);
                 localStorage.setItem('gemini_model', model);
-                alert('Configurações salvas e limpas!');
+                alert('Configurações salvas!');
                 toggleConfig();
                 loadConfig();
             } else {
-                alert('A chave parece muito curta. Verifique se copiou corretamente.');
+                alert('Chave inválida.');
+            }
+        }
+
+        function hardReset() {
+            if(confirm('Isso vai apagar sua chave e configurações para corrigir erros. Continuar?')) {
+                localStorage.clear();
+                alert('App resetado. A página será recarregada.');
+                window.location.reload();
             }
         }
 
@@ -212,6 +207,7 @@
             btn.classList.remove('bg-gradient-to-r', 'from-blue-600', 'to-blue-500', 'text-white', 'hover:shadow-lg');
             
             document.getElementById('resultCard').classList.add('hidden');
+            // Reseta os inputs
             document.getElementById('cameraInput').value = '';
             document.getElementById('galleryInput').value = '';
         }
@@ -220,7 +216,7 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            // Feedback visual imediato
+            // Feedback visual
             const reader = new FileReader();
             reader.onload = function(e) {
                 base64Image = e.target.result.split(',')[1];
@@ -242,42 +238,41 @@
             reader.readAsDataURL(file);
         }
 
-        // --- Lógica Inteligente de Tentativas (Retry Logic) ---
+        // --- Lógica de Análise (Com Fallback Manual) ---
         async function startAnalysis() {
             const apiKey = localStorage.getItem('gemini_api_key');
             if (!apiKey) { alert("Configure sua API Key."); toggleConfig(); return; }
 
-            // UI Setup
             document.getElementById('analyzeBtn').classList.add('hidden');
             document.getElementById('loading').classList.remove('hidden');
             document.getElementById('resultCard').classList.add('hidden');
-            document.getElementById('loadingText').innerText = "Analisando com Gemini...";
+            
+            // Pega o modelo que o usuário selecionou explicitamente
+            const selectedModel = localStorage.getItem('gemini_model') || 'gemini-1.5-flash';
+            document.getElementById('loadingText').innerText = `Analisando com ${selectedModel}...`;
 
-            // Tenta o modelo escolhido primeiro, depois o fallback
-            let preferredModel = localStorage.getItem('gemini_model') || 'gemini-1.5-flash';
-            let modelsToTry = [preferredModel, ...MODEL_FALLBACK_CHAIN.filter(m => m !== preferredModel)];
-
-            for (const model of modelsToTry) {
-                try {
-                    document.getElementById('loadingText').innerText = `Tentando modelo: ${model}...`;
-                    console.log(`Tentando: ${model}`);
-                    
-                    const result = await callGeminiAPI(apiKey, model);
-                    
-                    // Sucesso!
-                    renderResult(result, model);
-                    return; // Sai da função
-
-                } catch (error) {
-                    console.warn(`Falha no modelo ${model}:`, error);
-                    // Continua para o próximo modelo no loop
+            try {
+                const result = await callGeminiAPI(apiKey, selectedModel);
+                renderResult(result, selectedModel);
+            } catch (error) {
+                console.error(error);
+                
+                // Se falhar o modelo padrão, tenta uma última cartada com o Experimental
+                if (selectedModel !== 'gemini-2.0-flash-exp') {
+                    document.getElementById('loadingText').innerText = "Tentando modelo alternativo (2.0 Exp)...";
+                    try {
+                        const fallbackResult = await callGeminiAPI(apiKey, 'gemini-2.0-flash-exp');
+                        renderResult(fallbackResult, 'gemini-2.0-flash-exp');
+                        return;
+                    } catch (e) {
+                        // Se falhar também, mostra o erro original
+                    }
                 }
-            }
 
-            // Se chegou aqui, todos falharam
-            alert("Erro: Nenhum modelo de IA conseguiu processar. Verifique sua API Key ou tente outra foto.");
-            document.getElementById('loading').classList.add('hidden');
-            document.getElementById('analyzeBtn').classList.remove('hidden');
+                alert(`Erro na IA: ${error.message}\n\nTente trocar o Modelo na engrenagem (Experimente o v001 ou 2.0).`);
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('analyzeBtn').classList.remove('hidden');
+            }
         }
 
         async function callGeminiAPI(key, model) {
@@ -291,10 +286,10 @@
             Responda em Português (Brasil). Use Markdown.
             `;
 
-            // Garante URL limpa sem espaços
             const cleanKey = key.trim();
             const cleanModel = model.trim();
             
+            // Endpoint v1beta padrão
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModel}:generateContent?key=${cleanKey}`;
 
             const response = await fetch(url, {
@@ -313,6 +308,10 @@
             const data = await response.json();
 
             if (!response.ok || data.error) {
+                // Mensagem de erro amigável para 404
+                if (data.error && data.error.code === 404) {
+                    throw new Error(`Modelo "${cleanModel}" não encontrado para sua chave. Tente outro na lista.`);
+                }
                 throw new Error(data.error?.message || response.statusText);
             }
 
