@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NutriCam V16</title>
+    <title>NutriCam V17</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Marked para Markdown -->
@@ -16,46 +16,92 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; }
         
-        /* ESTILOS DA TABELA NUTRICIONAL */
+        /* --- ESTILIZAÇÃO AVANÇADA DA TABELA --- */
+        #markdownContent table {
+            width: 100%; 
+            border-collapse: separate; 
+            border-spacing: 0;
+            margin: 0.5rem 0; 
+            font-size: 0.75rem;
+            background-color: #1f2937; /* Cinza escuro */
+            border-radius: 8px; 
+            overflow: hidden;
+            border: 1px solid #374151;
+        }
+        
+        #markdownContent th { 
+            background-color: #111827; /* Quase preto */
+            color: #9ca3af; 
+            font-weight: 700; 
+            text-align: center; 
+            padding: 10px 4px;
+            border-bottom: 2px solid #374151;
+            text-transform: uppercase;
+            font-size: 0.65rem;
+            letter-spacing: 0.05em;
+        }
+
+        #markdownContent td { 
+            border-bottom: 1px solid #374151; 
+            padding: 8px 4px; 
+            color: #e5e7eb; 
+            text-align: center;
+        }
+
+        /* Coluna 1 (Item) alinhada à esquerda */
+        #markdownContent td:nth-child(1) { text-align: left; padding-left: 10px; font-weight: 600; color: #f3f4f6; }
+        
+        /* Coluna 4 (Prot) - VERDE */
+        #markdownContent td:nth-child(4), #markdownContent th:nth-child(4) { color: #4ade80; }
+        
+        /* Coluna 5 (Carb) - VERMELHO CLARO */
+        #markdownContent td:nth-child(5), #markdownContent th:nth-child(5) { color: #f87171; }
+        
+        /* Coluna 6 (Gord) - AMARELO */
+        #markdownContent td:nth-child(6), #markdownContent th:nth-child(6) { color: #facc15; }
+
+        /* Tipografia do Markdown */
         #markdownContent h1, #markdownContent h2 {
-            color: #4ade80;
-            font-size: 1.25rem;
-            font-weight: 800;
+            /* A cor será definida dinamicamente via JS (mapa de calor), mas o base é cinza claro */
+            color: #e5e7eb; 
+            font-size: 1.5rem;
+            font-weight: 900;
             margin-top: 1rem;
             margin-bottom: 0.5rem;
-            border-bottom: 1px solid #334155;
-            padding-bottom: 0.3rem;
+            text-align: center;
+            letter-spacing: -0.02em;
         }
-        #markdownContent strong { color: #fbbf24; font-weight: 900; }
-        #markdownContent table {
-            width: 100%; border-collapse: collapse; margin: 0.8rem 0; font-size: 0.75rem;
-            background-color: #1e293b; border-radius: 8px; overflow: hidden;
-            display: block; overflow-x: auto; white-space: nowrap;
+        
+        #markdownContent p { 
+            line-height: 1.5; 
+            color: #d1d5db; 
+            margin-bottom: 8px; 
+            font-size: 0.85rem; 
+            text-align: justify;
         }
-        #markdownContent th { background-color: #334155; color: #94a3b8; font-weight: 600; text-align: left; padding: 8px; }
-        #markdownContent td { border-bottom: 1px solid #334155; padding: 8px; color: #e2e8f0; }
-        #markdownContent p { line-height: 1.5; color: #cbd5e1; margin-bottom: 8px; font-size: 0.9rem; }
-        #markdownContent li { margin-bottom: 4px; font-size: 0.9rem; }
+        
+        /* Destaques no texto corrido */
+        #markdownContent strong { color: #fff; font-weight: 800; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-4">
 
     <!-- Header Simples -->
-    <div class="w-full max-w-md flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
+    <div class="w-full max-w-md flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
         <h1 class="font-bold text-xl flex items-center gap-2">
             <i class="fas fa-carrot text-green-500"></i> NutriCam 
         </h1>
-        <button onclick="toggleConfig()" class="text-slate-400 hover:text-white transition p-2">
+        <button onclick="toggleConfig()" class="text-slate-500 hover:text-white transition p-2">
             <i class="fas fa-cog fa-lg"></i>
         </button>
     </div>
 
     <!-- Painel de Configuração -->
-    <div id="configPanel" class="w-full max-w-md bg-slate-800 rounded-xl p-5 mb-6 border border-slate-600 shadow-xl hidden">
+    <div id="configPanel" class="w-full max-w-md bg-slate-900 rounded-xl p-5 mb-6 border border-slate-700 shadow-xl hidden">
         <h2 class="font-bold text-slate-200 mb-3 text-sm uppercase flex items-center gap-2">
             <i class="fas fa-plug"></i> Conexão API
         </h2>
-        <input type="password" id="apiKeyInput" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-lg text-white text-xs font-mono mb-3 focus:border-blue-500 outline-none transition" placeholder="Cole sua API Key aqui...">
+        <input type="password" id="apiKeyInput" class="w-full p-3 bg-black border border-slate-700 rounded-lg text-white text-xs font-mono mb-3 focus:border-blue-500 outline-none transition" placeholder="Cole sua API Key aqui...">
         
         <button onclick="fetchModels()" id="btnConnect" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg mb-4 transition flex justify-center items-center gap-2 shadow-lg">
             <span>📡 Conectar e Buscar Modelos</span>
@@ -63,7 +109,7 @@
 
         <div id="modelSelectArea" class="hidden animate-fade-in">
             <label class="text-xs text-slate-400 block mb-1">Modelo Selecionado:</label>
-            <select id="modelSelect" class="w-full p-3 bg-slate-900 border border-green-500 rounded-lg text-white text-sm mb-3"></select>
+            <select id="modelSelect" class="w-full p-3 bg-black border border-green-500 rounded-lg text-white text-sm mb-3"></select>
             <button onclick="saveConfig()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg transition shadow-lg">✅ Salvar Configuração</button>
         </div>
         <p id="statusMsg" class="text-center text-xs text-slate-400 mt-2"></p>
@@ -73,32 +119,32 @@
     <div id="mainInterface" class="w-full max-w-md hidden">
         
         <!-- Preview -->
-        <div id="previewContainer" class="hidden relative w-full h-64 bg-slate-900 rounded-xl mb-4 overflow-hidden border border-slate-600 shadow-2xl flex items-center justify-center">
+        <div id="previewContainer" class="hidden relative w-full h-64 bg-black rounded-xl mb-4 overflow-hidden border border-slate-700 shadow-2xl flex items-center justify-center">
             <img id="imagePreview" class="max-w-full max-h-full object-contain">
             <button onclick="resetImage()" class="absolute top-2 right-2 bg-black/60 backdrop-blur p-2 rounded-full text-white hover:bg-red-500 transition border border-white/10 z-10">
                 <i class="fas fa-times"></i>
             </button>
         </div>
 
-        <!-- ÁREA DE DESCRIÇÃO (COM ID PARA SCROLL) -->
+        <!-- ÁREA DE DESCRIÇÃO -->
         <div id="descriptionArea" class="hidden w-full mb-4 animate-fade-in scroll-mt-20">
             <button onclick="toggleDescriptionInput()" class="text-xs text-blue-400 hover:text-blue-300 font-bold mb-2 flex items-center gap-1 transition">
                 <i class="fas fa-pen"></i> Adicionar detalhes dos alimentos (Opcional)
             </button>
             
             <div id="inputContainer" class="hidden">
-                <textarea id="userDescription" rows="2" class="w-full p-3 bg-slate-800 border border-slate-600 rounded-lg text-sm text-white focus:border-blue-500 outline-none placeholder-slate-500" placeholder="Ex: O molho é de iogurte, o arroz é integral, tem 200g de frango..."></textarea>
+                <textarea id="userDescription" rows="2" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:border-blue-500 outline-none placeholder-slate-500" placeholder="Ex: O molho é de iogurte, o arroz é integral, tem 200g de frango..."></textarea>
             </div>
         </div>
 
         <!-- BOTÃO DE UPLOAD -->
         <div id="uploadButtons" class="w-full">
-            <label class="group relative w-full bg-slate-800 hover:bg-slate-750 border-2 border-dashed border-slate-600 hover:border-blue-500 rounded-2xl cursor-pointer transition-all duration-300 flex flex-col items-center justify-center py-10 shadow-lg">
-                <div class="bg-blue-600/20 p-4 rounded-full mb-3 group-hover:scale-110 transition duration-300">
+            <label class="group relative w-full bg-slate-900 hover:bg-slate-800 border-2 border-dashed border-slate-700 hover:border-blue-500 rounded-2xl cursor-pointer transition-all duration-300 flex flex-col items-center justify-center py-10 shadow-lg">
+                <div class="bg-blue-600/10 p-4 rounded-full mb-3 group-hover:scale-110 transition duration-300">
                     <i class="fas fa-camera text-3xl text-blue-400"></i>
                 </div>
                 <h3 class="text-lg font-bold text-slate-200 group-hover:text-white">Adicionar Foto</h3>
-                <p class="text-xs text-slate-400 mt-1">Galeria ou Câmera Externa</p>
+                <p class="text-xs text-slate-500 mt-1">Galeria ou Câmera Externa</p>
                 <input type="file" accept="image/*" onchange="handleFile(this)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
             </label>
         </div>
@@ -108,48 +154,49 @@
             Aguardando foto...
         </button>
 
-        <!-- CONTAINER DE RESULTADO -->
-        <div id="captureArea" class="hidden mt-8 bg-slate-800 rounded-xl shadow-2xl border-t-4 border-green-500 overflow-hidden w-full mx-auto">
+        <!-- CONTAINER DE RESULTADO (CARD) -->
+        <div id="captureArea" class="hidden mt-8 bg-gray-900 rounded-xl shadow-2xl border border-slate-700 overflow-hidden w-full mx-auto relative">
             
+            <!-- Barra de Status Colorida (Topo) -->
+            <div id="heatBar" class="h-2 w-full bg-slate-700"></div>
+
             <!-- Foto no Card -->
-            <div id="printHeader" class="w-full h-64 bg-slate-900 flex items-center justify-center relative border-b border-slate-700 hidden">
+            <div id="printHeader" class="w-full h-56 bg-black flex items-center justify-center relative border-b border-slate-800 hidden">
                 <img id="printImage" class="max-w-full max-h-full object-contain">
-                <div class="absolute bottom-0 left-0 bg-black/70 px-3 py-1 text-[10px] text-white font-mono rounded-tr-lg">
+                <div class="absolute bottom-0 left-0 bg-black/80 backdrop-blur px-3 py-1 text-[10px] text-white font-mono rounded-tr-lg border-t border-r border-slate-700">
                     NutriCam Log
                 </div>
             </div>
 
             <div class="p-5">
-                <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-700">
-                    <h3 class="font-bold text-white flex items-center gap-2">
-                        <i class="fas fa-clipboard-list text-green-400"></i> Análise
+                <div class="flex justify-between items-center mb-2 pb-2 border-b border-slate-800">
+                    <h3 class="font-bold text-white flex items-center gap-2 text-sm">
+                        <i class="fas fa-chart-simple text-blue-400"></i> Dashboard Nutricional
                     </h3>
-                    <span class="text-[10px] text-slate-400 font-mono" id="dateLabel"></span>
+                    <span class="text-[10px] text-slate-500 font-mono" id="dateLabel"></span>
                 </div>
                 
                 <!-- Nota do Usuário -->
-                <div id="userNoteDisplay" class="hidden mb-4 p-3 bg-slate-700/50 rounded-lg border-l-2 border-blue-400">
-                    <p class="text-[10px] text-blue-200 font-bold mb-1">OBSERVAÇÃO:</p>
-                    <p id="userNoteText" class="text-xs text-slate-300 italic"></p>
+                <div id="userNoteDisplay" class="hidden mb-3 p-2 bg-blue-900/20 rounded border-l-2 border-blue-500">
+                    <p class="text-[10px] text-blue-300 italic" id="userNoteText"></p>
                 </div>
 
                 <div id="markdownContent"></div>
                 
-                <div class="mt-4 pt-3 border-t border-slate-700 text-center">
-                    <span class="text-[9px] text-slate-500 font-mono">Gerado via NutriCam AI</span>
+                <div class="mt-4 pt-2 border-t border-slate-800 flex justify-between items-center">
+                    <span class="text-[9px] text-slate-600 font-mono">ID: <span id="modelBadge">IA</span></span>
+                    <span class="text-[9px] text-slate-600 font-mono">NutriCam App</span>
                 </div>
             </div>
         </div>
 
-        <!-- Botões de Ação Pós-Análise -->
-        <div class="w-full flex flex-col gap-3 mt-4">
-            <!-- Botão Salvar -->
-            <button id="saveBtn" onclick="downloadCard()" class="hidden w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-xl shadow-lg transition flex justify-center items-center gap-2">
-                <i class="fas fa-download"></i> Salvar Card na Galeria
+        <!-- Botões de Ação -->
+        <div class="w-full flex flex-col gap-3 mt-4 mb-8">
+            <button id="saveBtn" onclick="downloadCard()" class="hidden w-full bg-purple-700 hover:bg-purple-600 text-white font-bold py-3 rounded-xl shadow-lg transition flex justify-center items-center gap-2">
+                <i class="fas fa-download"></i> Salvar Card
             </button>
 
-            <!-- Botão Refinar (Novo) -->
-            <button id="refineBtn" onclick="enableRefinement()" class="hidden w-full bg-slate-700 hover:bg-slate-600 text-blue-300 font-bold py-3 rounded-xl shadow transition flex justify-center items-center gap-2 border border-slate-600">
+            <button id="refineBtn" onclick="enableRefinement()" class="hidden w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl shadow transition flex justify-center items-center gap-2 border border-slate-700">
                 <i class="fas fa-edit"></i> Corrigir / Adicionar Detalhes
             </button>
         </div>
@@ -258,24 +305,16 @@
             }
         }
 
-        // FUNÇÃO NOVA: ATIVAR MODO REFINAMENTO
         function enableRefinement() {
             const container = document.getElementById('inputContainer');
             const descArea = document.getElementById('descriptionArea');
             const textarea = document.getElementById('userDescription');
             
-            // Garante que a área de input esteja visível
             container.classList.remove('hidden');
-            
-            // Rola suavemente até a área de descrição
             descArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            
-            // Foca e dá uma dica visual
             textarea.focus();
-            textarea.classList.add('ring-2', 'ring-blue-500');
-            setTimeout(() => textarea.classList.remove('ring-2', 'ring-blue-500'), 2000);
+            textarea.classList.add('ring-1', 'ring-blue-500');
             
-            // Muda o texto do botão principal para indicar reanálise
             const btn = document.getElementById('analyzeBtn');
             btn.innerHTML = `<i class="fas fa-sync-alt"></i> Reanalisar com Correções`;
         }
@@ -295,7 +334,7 @@
                 document.getElementById('uploadButtons').classList.add('hidden');
                 document.getElementById('captureArea').classList.add('hidden');
                 document.getElementById('saveBtn').classList.add('hidden');
-                document.getElementById('refineBtn').classList.add('hidden'); // Esconde refinar
+                document.getElementById('refineBtn').classList.add('hidden');
                 document.getElementById('errorLog').classList.add('hidden');
                 
                 const btn = document.getElementById('analyzeBtn');
@@ -326,7 +365,7 @@
             document.querySelectorAll('input').forEach(i => i.value = '');
         }
 
-        // --- 3. ANÁLISE ---
+        // --- 3. ANÁLISE E COLORAÇÃO DINÂMICA ---
         async function analyze() {
             const key = localStorage.getItem('nutricam_stable_key');
             let modelName = localStorage.getItem('nutricam_stable_model');
@@ -347,31 +386,25 @@
 
                 let contextString = "";
                 if (userText) {
-                    contextString = `\n\nCONTEXTO/CORREÇÃO DO USUÁRIO (Prioridade Alta): "${userText}". Se o usuário corrigiu um alimento, use a informação dele.`;
+                    contextString = `\n\nCONTEXTO DO USUÁRIO: "${userText}". Use isso para refinar a identificação.`;
                 }
 
+                // Prompt ajustado para Resumo Descritivo + Tabela
                 const prompt = `
-                Aja como um nutricionista esportivo.
-                Perfil: Homem, 91kg, Mestrando, objetivo de emagrecimento com manutenção de massa magra.
+                Aja como nutricionista esportivo. Perfil: Homem, 91kg, objetivo emagrecimento/manutenção massa magra.
                 ${contextString}
                 
-                Analise a imagem da refeição e siga esta estrutura:
-                
-                1. Alimentos Identificados
-                (Liste de forma direta)
-                
+                Analise a imagem. Siga estritamente esta ordem e formatação:
+
+                1. Resumo Descritivo
+                (Um parágrafo conciso, sem tópicos, descrevendo os alimentos identificados, qualidade da refeição e impacto na saciedade).
+
                 2. Tabela Nutricional
-                (Colunas: Item, Qtd, Kcal, Prot, Carb, Gord)
+                (Colunas EXATAS nesta ordem: Item, Qtd, Kcal, Prot, Carb, Gord)
                 
                 3. Totais
                 ## Total: [Valor] Kcal
                 **Proteína Total: [Valor]g**
-                
-                4. Análise da Refeição
-                (Comentário equilibrado sobre saciedade e metas).
-                
-                5. Alternativa Saudável e Econômica
-                (Sugira UMA opção de refeição com calorias similares usando alimentos baratos).
                 `;
 
                 const response = await fetch(url, {
@@ -393,23 +426,27 @@
 
                 const text = data.candidates[0].content.parts[0].text;
                 
+                // 1. Renderiza Markdown
                 document.getElementById('markdownContent').innerHTML = marked.parse(text);
                 
+                // 2. Aplica Escala de Calor (Heatmap)
+                applyHeatMapColor();
+
+                // 3. Exibe Interface
                 const captureArea = document.getElementById('captureArea');
                 captureArea.classList.remove('hidden');
                 document.getElementById('printHeader').classList.remove('hidden');
                 
-                // Exibe nota se houver
                 if (userText) {
                     document.getElementById('userNoteDisplay').classList.remove('hidden');
-                    document.getElementById('userNoteText').innerText = userText;
+                    document.getElementById('userNoteText').innerText = `Nota: "${userText}"`;
                 } else {
                     document.getElementById('userNoteDisplay').classList.add('hidden');
                 }
                 
-                // Mostra botões finais
+                document.getElementById('modelBadge').innerText = cleanModelName;
                 document.getElementById('saveBtn').classList.remove('hidden');
-                document.getElementById('refineBtn').classList.remove('hidden'); // Mostra botão de refinar
+                document.getElementById('refineBtn').classList.remove('hidden');
                 
                 captureArea.scrollIntoView({ behavior: 'smooth' });
 
@@ -423,6 +460,41 @@
             }
         }
 
+        // --- FUNÇÃO PARA COLORIR CALORIAS DINAMICAMENTE ---
+        function applyHeatMapColor() {
+            // Procura o H2 que contém "Total"
+            const headers = document.querySelectorAll('#markdownContent h2');
+            let totalHeader = null;
+            let calories = 0;
+
+            headers.forEach(h2 => {
+                if (h2.innerText.includes('Total')) {
+                    totalHeader = h2;
+                    // Extrai apenas números do texto (Ex: "Total: 500 Kcal" -> 500)
+                    const match = h2.innerText.match(/(\d+)/);
+                    if (match) calories = parseInt(match[0]);
+                }
+            });
+
+            if (totalHeader) {
+                let colorClass = '#4ade80'; // Verde (padrão < 400)
+                let barColor = 'bg-green-500';
+
+                if (calories > 800) {
+                    colorClass = '#ef4444'; // Vermelho (Quente)
+                    barColor = 'bg-red-500';
+                } else if (calories > 400) {
+                    colorClass = '#facc15'; // Amarelo/Laranja (Morno)
+                    barColor = 'bg-yellow-500';
+                }
+
+                // Aplica cor ao texto das calorias
+                totalHeader.style.color = colorClass;
+                // Aplica cor à barra superior do card
+                document.getElementById('heatBar').className = `h-2 w-full ${barColor}`;
+            }
+        }
+
         // --- 4. FUNÇÃO DE DOWNLOAD ---
         function downloadCard() {
             const element = document.getElementById('captureArea');
@@ -430,13 +502,13 @@
             btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Gerando...`;
             
             html2canvas(element, {
-                backgroundColor: "#1e293b", 
+                backgroundColor: "#111827", // Cinza/Preto do card
                 scale: 1.5, 
                 logging: false,
                 useCORS: true
             }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = 'Refeicao_' + new Date().toLocaleTimeString().replace(/:/g, '-') + '.png';
+                link.download = 'NutriCam_' + new Date().toLocaleTimeString().replace(/:/g, '-') + '.png';
                 link.href = canvas.toDataURL("image/png");
                 link.click();
                 btn.innerHTML = `<i class="fas fa-check"></i> Salvo!`;
