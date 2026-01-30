@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NutriCam V9.5</title>
+    <title>NutriCam V10</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; }
         
-        /* Markdown Styles */
+        /* ESTILOS DA TABELA NUTRICIONAL */
         #markdownContent h1, #markdownContent h2 {
             color: #4ade80;
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: 800;
             margin-top: 1.5rem;
             margin-bottom: 0.5rem;
@@ -21,14 +21,13 @@
             padding-bottom: 0.5rem;
         }
         #markdownContent strong { color: #fbbf24; font-weight: 900; }
-        #markdownContent ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
         #markdownContent table {
-            width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.8rem;
+            width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.75rem; /* Fonte menor para caber tudo */
             background-color: #1e293b; border-radius: 8px; overflow: hidden;
-            display: block; overflow-x: auto;
+            display: block; overflow-x: auto; white-space: nowrap;
         }
-        #markdownContent th { background-color: #334155; color: #94a3b8; font-weight: 600; text-align: left; padding: 8px; white-space: nowrap; }
-        #markdownContent td { border-bottom: 1px solid #334155; padding: 8px; color: #e2e8f0; white-space: nowrap; }
+        #markdownContent th { background-color: #334155; color: #94a3b8; font-weight: 600; text-align: left; padding: 10px 8px; }
+        #markdownContent td { border-bottom: 1px solid #334155; padding: 10px 8px; color: #e2e8f0; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-4">
@@ -36,7 +35,7 @@
     <!-- Header -->
     <div class="w-full max-w-md flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
         <h1 class="font-bold text-xl flex items-center gap-2">
-            <i class="fas fa-carrot text-green-500"></i> NutriCam <span class="text-xs bg-red-900 text-red-200 px-2 rounded">V9.5</span>
+            <i class="fas fa-carrot text-green-500"></i> NutriCam <span class="text-xs bg-blue-900 text-blue-200 px-2 rounded">V10</span>
         </h1>
         <button onclick="toggleConfig()" class="text-slate-400 hover:text-white">
             <i class="fas fa-cog fa-lg"></i>
@@ -71,33 +70,25 @@
             </button>
         </div>
 
-        <!-- BOTÕES DE UPLOAD SEPARADOS (A Estratégia de Força Bruta) -->
+        <!-- NOVOS BOTÕES DINÂMICOS (Javascript Driven) -->
         <div id="uploadButtons" class="grid grid-cols-1 gap-4">
             
-            <!-- 1. CÂMERA (Comando Imperativo: capture="environment") -->
-            <label class="relative w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-6 rounded-xl cursor-pointer shadow-lg shadow-blue-900/20 active:scale-95 transition flex flex-col items-center justify-center gap-2">
-                <i class="fas fa-camera text-3xl"></i>
-                <span class="text-lg">Tirar Foto Agora</span>
-                <span class="text-[10px] opacity-75 font-normal">Abre a Câmera Traseira</span>
-                <!-- O segredo: capture="environment" força a câmera no Android -->
-                <input type="file" accept="image/*" capture="environment" onchange="handleFile(this)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-            </label>
+            <!-- Opção A: Câmera Direta -->
+            <button onclick="triggerDynamicInput('camera')" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-6 rounded-xl shadow-lg active:scale-95 transition flex flex-col items-center justify-center gap-1">
+                <span class="text-lg"><i class="fas fa-camera"></i> Câmera</span>
+                <span class="text-[10px] opacity-70">Tenta abrir direto</span>
+            </button>
 
-            <!-- 2. GALERIA (Sem comando capture) -->
-            <label class="relative w-full bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold py-4 rounded-xl cursor-pointer active:scale-95 transition flex items-center justify-center gap-3">
-                <i class="fas fa-images text-xl"></i>
-                <span>Escolher da Galeria</span>
-                <!-- Sem capture, abre o gerenciador de arquivos -->
-                <input type="file" accept="image/*" onchange="handleFile(this)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-            </label>
-
-            <!-- 3. EMERGÊNCIA (Tentativa com sintaxe legada) -->
-            <label class="block text-center mt-2 cursor-pointer">
-                <span class="text-[10px] text-slate-500 underline">A câmera ainda não abre? Toque aqui.</span>
-                <!-- Sintaxe antiga: accept="image/jpeg" as vezes bypassa o seletor -->
-                <input type="file" accept="image/jpeg" capture="camera" onchange="handleFile(this)" class="hidden">
-            </label>
+            <!-- Opção B: Menu de Escolha (Abrir com...) -->
+            <button onclick="triggerDynamicInput('chooser')" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold py-4 rounded-xl active:scale-95 transition flex items-center justify-center gap-2">
+                <i class="fas fa-folder-open"></i>
+                <span>Menu "Abrir com..." / Galeria</span>
+            </button>
         </div>
+        
+        <p class="text-[10px] text-slate-500 text-center mt-4 px-4">
+            Dica: Se sempre abrir arquivos, vá em Configurações do Android > Apps > Chrome > "Limpar Padrões".
+        </p>
 
         <!-- Botão Analisar -->
         <button id="analyzeBtn" onclick="analyze()" disabled class="w-full mt-4 bg-slate-700 text-slate-500 font-bold py-4 rounded-xl transition cursor-not-allowed flex justify-center items-center gap-2">
@@ -107,23 +98,22 @@
         <!-- Resultado -->
         <div id="resultArea" class="hidden mt-6 bg-slate-800 p-6 rounded-xl shadow-xl border-t-4 border-green-500">
             <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-700">
-                <h3 class="font-bold text-white">Análise</h3>
+                <h3 class="font-bold text-white">Macros & Calorias</h3>
                 <span id="modelBadge" class="text-[10px] bg-slate-700 px-2 py-1 rounded text-slate-300">IA</span>
             </div>
             <div id="markdownContent"></div>
         </div>
         
-        <!-- Log de Erro Técnico -->
         <div id="errorLog" class="hidden mt-4 p-3 bg-red-900/50 border border-red-500 rounded text-xs font-mono text-red-200 break-all"></div>
     </div>
 
     <script>
-        // --- 1. CONFIGURAÇÃO E CONEXÃO ---
+        // --- 1. CONFIGURAÇÃO ---
         window.onload = () => {
-            const savedKey = localStorage.getItem('nutricam_v95_key');
+            const savedKey = localStorage.getItem('nutricam_v10_key');
             if (savedKey) {
                 document.getElementById('apiKeyInput').value = savedKey;
-                if(localStorage.getItem('nutricam_v95_model')) {
+                if(localStorage.getItem('nutricam_v10_model')) {
                     showInterface();
                 } else {
                     document.getElementById('configPanel').classList.remove('hidden');
@@ -158,7 +148,6 @@
                 select.innerHTML = "";
                 let foundPreferred = false;
                 
-                // Ordena priorizando Flash
                 models.sort((a, b) => {
                     if (a.name.includes('flash') && !b.name.includes('flash')) return -1;
                     return 0;
@@ -167,7 +156,6 @@
                 models.forEach(m => {
                     const option = document.createElement('option');
                     option.value = m.name; 
-                    // Mostra nome amigável
                     option.text = m.displayName + ` (${m.name.replace('models/', '')})`;
                     select.appendChild(option);
                     if (!foundPreferred && m.name.includes('flash')) {
@@ -191,8 +179,8 @@
         function saveConfig() {
             const key = document.getElementById('apiKeyInput').value.trim();
             const model = document.getElementById('modelSelect').value;
-            localStorage.setItem('nutricam_v95_key', key);
-            localStorage.setItem('nutricam_v95_model', model);
+            localStorage.setItem('nutricam_v10_key', key);
+            localStorage.setItem('nutricam_v10_model', model);
             showInterface();
         }
 
@@ -208,28 +196,45 @@
             document.getElementById('modelSelectArea').classList.add('hidden');
         }
 
-        // --- 2. MANIPULAÇÃO DE ARQUIVO ---
+        // --- 2. UPLOAD DINÂMICO (A ESTRATÉGIA ANTI-CACHE) ---
         let base64Image = null;
 
-        function handleFile(input) {
-            const file = input.files[0];
-            if (!file) return;
+        function triggerDynamicInput(type) {
+            // Cria um input invisível no momento do clique
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            // Gera um ID único para garantir que o navegador não use cache de preferência
+            input.id = 'file_' + new Date().getTime(); 
 
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                base64Image = e.target.result.split(',')[1];
-                document.getElementById('imagePreview').src = e.target.result;
-                document.getElementById('previewContainer').classList.remove('hidden');
-                document.getElementById('uploadButtons').classList.add('hidden');
-                document.getElementById('resultArea').classList.add('hidden');
-                document.getElementById('errorLog').classList.add('hidden');
+            if (type === 'camera') {
+                input.setAttribute('capture', 'environment');
+            }
+            // Se for 'chooser', não adicionamos capture, forçando o menu
+
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
                 
-                const btn = document.getElementById('analyzeBtn');
-                btn.disabled = false;
-                btn.className = "w-full mt-4 bg-green-600 hover:bg-green-500 text-white font-bold py-4 rounded-xl transition shadow-lg flex justify-center items-center gap-2";
-                btn.innerHTML = `<i class="fas fa-magic"></i> Analisar Foto`;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    base64Image = ev.target.result.split(',')[1];
+                    document.getElementById('imagePreview').src = ev.target.result;
+                    document.getElementById('previewContainer').classList.remove('hidden');
+                    document.getElementById('uploadButtons').classList.add('hidden');
+                    document.getElementById('resultArea').classList.add('hidden');
+                    document.getElementById('errorLog').classList.add('hidden');
+                    
+                    const btn = document.getElementById('analyzeBtn');
+                    btn.disabled = false;
+                    btn.className = "w-full mt-4 bg-green-600 hover:bg-green-500 text-white font-bold py-4 rounded-xl transition shadow-lg flex justify-center items-center gap-2";
+                    btn.innerHTML = `<i class="fas fa-magic"></i> Analisar Macros`;
+                };
+                reader.readAsDataURL(file);
             };
-            reader.readAsDataURL(file);
+
+            // Simula o clique
+            input.click();
         }
 
         function resetImage() {
@@ -242,14 +247,12 @@
             btn.disabled = true;
             btn.className = "w-full mt-4 bg-slate-700 text-slate-500 font-bold py-4 rounded-xl transition cursor-not-allowed flex justify-center items-center gap-2";
             btn.innerHTML = "Aguardando foto...";
-            
-            document.querySelectorAll('input').forEach(i => i.value = '');
         }
 
-        // --- 3. ANÁLISE ---
+        // --- 3. ANÁLISE DETALHADA ---
         async function analyze() {
-            const key = localStorage.getItem('nutricam_v95_key');
-            let modelName = localStorage.getItem('nutricam_v95_model');
+            const key = localStorage.getItem('nutricam_v10_key');
+            let modelName = localStorage.getItem('nutricam_v10_model');
 
             if (!key || !modelName) return toggleConfig();
 
@@ -261,7 +264,6 @@
             errorLog.classList.add('hidden');
 
             try {
-                // Limpeza extra para evitar duplicação de 'models/'
                 let cleanModelName = modelName;
                 if (cleanModelName.startsWith('models/')) {
                     cleanModelName = cleanModelName.replace('models/', '');
@@ -270,18 +272,18 @@
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModelName}:generateContent?key=${key}`;
 
                 const prompt = `
-                Aja como nutricionista esportivo (Homem, 91kg, ombro lesionado).
-                Analise a imagem e siga estritamente este formato, sem introduções:
+                Aja como nutricionista esportivo. Perfil: Homem, 91kg.
+                Analise a imagem da refeição e siga este formato ESTRITO (comece direto no ponto 1):
                 
-                1. Alimentos presentes.
-                2. Tabela Detalhada (Item | Qtd | Kcal | Proteína | Carb | Gord).
+                1. Alimentos identificados.
+                2. Tabela Nutricional Completa:
+                | Item | Qtd (est) | Kcal | Prot (g) | Carb (g) | Gord (g) |
+                |---|---|---|---|---|---|
                 
                 IMPORTANTE:
-                3. Escreva o TOTAL CALÓRICO usando ## (formato de título 2) para ficar grande e visível. Ex: "## Total: 500 Kcal".
-                4. Coloque valores importantes de proteína em **negrito**.
-                
-                5. Breve análise de saciedade.
-                Responda em Português e Markdown. Comece a resposta DIRETAMENTE no ponto 1.
+                3. TOTAL CALÓRICO usando formato de título Markdown (## Total: XXX Kcal).
+                4. TOTAL DE PROTEÍNA em **negrito** (Ex: **Total Prot: 40g**).
+                5. Análise de saciedade para quem quer emagrecer mantendo massa magra.
                 `;
 
                 const response = await fetch(url, {
@@ -310,8 +312,8 @@
 
             } catch (error) {
                 errorLog.classList.remove('hidden');
-                errorLog.innerText = `ERRO API: ${error.message}\nModelo: ${modelName}`;
-                alert("Erro na análise. Veja o log vermelho.");
+                errorLog.innerText = `ERRO: ${error.message}`;
+                alert("Erro na análise.");
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = `<i class="fas fa-magic"></i> Analisar Novamente`;
