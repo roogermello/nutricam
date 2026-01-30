@@ -3,286 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NutriCam Auto-Fix</title>
+    <!-- Meta tag para evitar bloqueios de Referer em chaves restritas -->
+    <meta name="referrer" content="no-referrer">
+    <title>NutriCam Debug</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        .loader {
-            border: 3px solid #e5e7eb;
-            border-top: 3px solid #3b82f6;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        body { font-family: 'Inter', sans-serif; background-color: #111827; color: #fff; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen p-4 flex flex-col items-center">
+<body class="min-h-screen p-4 flex flex-col items-center justify-center">
 
-    <!-- Header -->
-    <div class="w-full max-w-md bg-white rounded-xl shadow-sm p-4 mb-4 flex justify-between items-center">
-        <h1 class="font-bold text-gray-800 flex items-center gap-2">
-            <i class="fas fa-carrot text-orange-500"></i> NutriCam <span class="text-[10px] bg-blue-100 text-blue-800 px-2 rounded">Auto-Fix</span>
+    <div class="w-full max-w-md bg-gray-800 rounded-xl shadow-2xl p-6 border border-gray-700">
+        <h1 class="text-xl font-bold text-blue-400 mb-4 flex items-center gap-2">
+            <i class="fas fa-terminal"></i> NutriCam Debugger
         </h1>
-        <button onclick="toggleConfig()" class="text-gray-400 hover:text-blue-600 p-2">
-            <i class="fas fa-cog"></i>
-        </button>
-    </div>
 
-    <!-- Painel de Configuração -->
-    <div id="configPanel" class="w-full max-w-md bg-white rounded-xl shadow-lg p-5 mb-4 hidden border-l-4 border-blue-500 relative z-50">
-        <h2 class="font-bold text-gray-800 mb-2 text-sm uppercase">Configuração</h2>
-        
-        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-4">
-            <p class="text-xs text-yellow-700">
-                <strong>Atenção:</strong> Se der erro "Not Authorized", gere uma nova chave no Google AI Studio.
-            </p>
-        </div>
-
-        <label class="text-xs font-bold text-gray-500 block mb-1">NOVA API KEY</label>
-        <input type="password" id="apiKeyInput" class="w-full p-3 border rounded-lg bg-gray-50 text-sm mb-4 font-mono focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Cole a nova chave aqui...">
-        
-        <div class="flex gap-2">
-            <button onclick="saveConfig()" class="flex-1 bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition">
-                Salvar Nova Chave
-            </button>
-            <button onclick="hardReset()" class="px-4 py-3 bg-red-50 text-red-500 font-bold rounded-lg hover:bg-red-100 transition" title="Resetar App">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- Área Principal -->
-    <div class="w-full max-w-md flex flex-col gap-3">
-        
-        <!-- Área de Upload -->
-        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+        <!-- Passo 1: Configuração e Teste -->
+        <div class="mb-6">
+            <label class="text-xs font-bold text-gray-400 uppercase">1. Sua Nova API Key</label>
+            <input type="password" id="apiKey" class="w-full p-3 mt-1 bg-gray-900 border border-gray-600 rounded text-green-400 font-mono text-xs focus:border-blue-500 outline-none transition" placeholder="Cole a chave do NOVO projeto aqui...">
             
+            <button onclick="testConnection()" id="btnTest" class="w-full mt-3 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded border border-gray-600 transition">
+                📡 Testar Conexão com Google
+            </button>
+            
+            <div id="connectionStatus" class="mt-2 text-xs font-mono hidden p-2 rounded"></div>
+        </div>
+
+        <!-- Passo 2: Upload (Só aparece se a chave funcionar) -->
+        <div id="uploadArea" class="hidden opacity-50 pointer-events-none transition-opacity duration-500">
+            <label class="text-xs font-bold text-gray-400 uppercase mb-2 block">2. Enviar Foto</label>
+            
+            <!-- Botão Único e Robusto -->
+            <label class="w-full flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-600 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-gray-750 transition bg-gray-900">
+                <i class="fas fa-camera text-3xl text-gray-500 mb-2"></i>
+                <span class="text-sm text-gray-400">Tocar para abrir Câmera/Galeria</span>
+                <input type="file" class="hidden" accept="image/*" onchange="handleFile(this)">
+            </label>
+
             <!-- Preview -->
-            <div id="previewContainer" class="hidden relative w-full aspect-video bg-gray-100 rounded-xl mb-4 overflow-hidden border border-gray-200">
-                <img id="imagePreview" class="w-full h-full object-cover">
-                <button onclick="resetImage()" class="absolute top-2 right-2 bg-white/90 p-2 rounded-full shadow text-gray-600 hover:text-red-500 transition">
-                    <i class="fas fa-times"></i>
+            <div id="previewBox" class="hidden mt-4 relative">
+                <img id="imgPreview" class="w-full rounded-lg border border-gray-600">
+                <button onclick="analyze()" id="btnAnalyze" class="w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg transition">
+                    🚀 Analisar Foto
                 </button>
             </div>
-
-            <!-- Botões -->
-            <div id="uploadButtons" class="flex flex-col gap-3">
-                <div class="text-center mb-2">
-                    <p class="text-sm text-gray-500 font-medium">Tire uma foto do prato</p>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <label class="flex flex-col items-center justify-center p-4 bg-blue-50 text-blue-700 rounded-xl font-bold cursor-pointer border border-blue-100 hover:bg-blue-100 active:scale-95 transition h-24">
-                        <i class="fas fa-camera text-2xl mb-1"></i>
-                        <span class="text-xs">Câmera</span>
-                        <input type="file" accept="image/*" capture="environment" onchange="handleFile(this)" class="hidden">
-                    </label>
-                    
-                    <label class="flex flex-col items-center justify-center p-4 bg-purple-50 text-purple-700 rounded-xl font-bold cursor-pointer border border-purple-100 hover:bg-purple-100 active:scale-95 transition h-24">
-                        <i class="fas fa-images text-2xl mb-1"></i>
-                        <span class="text-xs">Galeria</span>
-                        <input type="file" accept="image/*" onchange="handleFile(this)" class="hidden">
-                    </label>
-                </div>
-
-                <!-- Fallback Input Nativo (Último Recurso) -->
-                <div class="mt-2 text-center">
-                    <p class="text-[10px] text-gray-400 mb-1">Se nada funcionar, use este:</p>
-                    <input type="file" accept="image/*" capture="environment" onchange="handleFile(this)" class="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300 mx-auto">
-                </div>
-            </div>
         </div>
 
-        <!-- Botão Analisar -->
-        <button id="analyzeBtn" onclick="startAnalysisSequence()" disabled class="w-full bg-gray-200 text-gray-400 font-bold py-4 rounded-xl transition cursor-not-allowed shadow-sm flex flex-col justify-center items-center gap-1 min-h-[60px]">
-            <span>Aguardando foto...</span>
-        </button>
-
-        <!-- Log de Tentativas (Para debug visual) -->
-        <div id="retryLog" class="hidden text-[10px] font-mono text-gray-500 text-center p-2 bg-gray-100 rounded"></div>
-
-        <!-- Resultado -->
-        <div id="resultArea" class="hidden bg-white p-5 rounded-2xl shadow-md border-t-4 border-green-500">
-            <div class="flex justify-between items-center mb-3">
-                <h3 class="font-bold text-gray-800">Relatório</h3>
-                <span id="badgeModel" class="text-[10px] uppercase font-bold text-white bg-green-600 px-2 py-1 rounded">IA</span>
-            </div>
-            <div id="markdownContent" class="prose prose-sm text-gray-600 leading-relaxed text-sm"></div>
+        <!-- Log de Erros/Sucesso -->
+        <div id="consoleLog" class="mt-6 p-3 bg-black rounded border border-gray-800 text-[10px] font-mono text-green-500 h-40 overflow-y-auto hidden">
+            > Sistema iniciado...<br>
         </div>
     </div>
 
     <script>
-        // --- LISTA DE MODELOS (ORDEM DE TENTATIVA) ---
-        // Se o primeiro falhar, ele tenta o próximo automaticamente
-        const MODEL_CHAIN = [
-            'gemini-1.5-flash',
-            'gemini-1.5-flash-8b',       // Novo modelo rápido
-            'gemini-1.5-flash-latest',
-            'gemini-1.5-pro',            // Mais robusto
-            'gemini-2.0-flash-exp',      // Experimental
-            'gemini-pro-vision'          // Legado (v1.0)
-        ];
+        // Modelo fixo que funciona 99% das vezes
+        const MODEL = 'gemini-1.5-flash'; 
+        let base64Data = null;
 
-        // --- CONFIGURAÇÃO ---
-        window.onload = () => {
-            const key = localStorage.getItem('nutricam_v6_key');
-            if (key) {
-                document.getElementById('apiKeyInput').value = key;
-            } else {
-                toggleConfig();
+        function log(msg, type = 'info') {
+            const box = document.getElementById('consoleLog');
+            box.classList.remove('hidden');
+            const color = type === 'error' ? 'text-red-400' : (type === 'success' ? 'text-green-400' : 'text-gray-400');
+            box.innerHTML += `<span class="${color}">> ${msg}</span><br>`;
+            box.scrollTop = box.scrollHeight;
+        }
+
+        async function testConnection() {
+            const key = document.getElementById('apiKey').value.trim();
+            if(key.length < 10) return log("Erro: Chave muito curta.", 'error');
+
+            const btn = document.getElementById('btnTest');
+            btn.innerHTML = "⏳ Verificando...";
+            
+            try {
+                // Teste simples: Listar modelos. Se isso falhar, a chave é inválida para TUDO.
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+                const data = await response.json();
+
+                if(data.error) {
+                    throw new Error(data.error.message);
+                }
+
+                log("SUCESSO! Conexão estabelecida.", 'success');
+                log(`Encontrados ${data.models?.length || 0} modelos disponíveis.`);
+                
+                // Libera a área de upload
+                const uploadArea = document.getElementById('uploadArea');
+                uploadArea.classList.remove('opacity-50', 'pointer-events-none');
+                
+                document.getElementById('connectionStatus').className = "mt-2 text-xs font-mono p-2 rounded bg-green-900 text-green-200 block";
+                document.getElementById('connectionStatus').innerText = "✅ Chave Válida. Pode enviar a foto.";
+                btn.innerHTML = "📡 Conexão OK";
+
+                // Salva a chave
+                localStorage.setItem('nutricam_debug_key', key);
+
+            } catch (error) {
+                log(`FALHA NA CONEXÃO: ${error.message}`, 'error');
+                document.getElementById('connectionStatus').className = "mt-2 text-xs font-mono p-2 rounded bg-red-900 text-red-200 block";
+                document.getElementById('connectionStatus').innerText = "❌ Erro: " + error.message;
+                btn.innerHTML = "📡 Tentar Novamente";
             }
-        };
-
-        function toggleConfig() {
-            document.getElementById('configPanel').classList.toggle('hidden');
         }
-
-        function saveConfig() {
-            const key = document.getElementById('apiKeyInput').value.trim();
-            if (key.length < 10) return alert("Chave inválida.");
-            localStorage.setItem('nutricam_v6_key', key);
-            toggleConfig();
-            alert("Chave salva! Tente enviar a foto agora.");
-        }
-
-        function hardReset() {
-            if(confirm("Isso apagará a chave para corrigir erros. Continuar?")) {
-                localStorage.removeItem('nutricam_v6_key');
-                location.reload();
-            }
-        }
-
-        // --- IMAGEM ---
-        let base64Image = null;
 
         function handleFile(input) {
             const file = input.files[0];
-            if (!file) return;
+            if(!file) return;
 
+            log("Lendo imagem...", 'info');
             const reader = new FileReader();
             reader.onload = (e) => {
-                base64Image = e.target.result.split(',')[1];
-                document.getElementById('imagePreview').src = e.target.result;
-                document.getElementById('previewContainer').classList.remove('hidden');
-                document.getElementById('uploadButtons').classList.add('hidden');
-                document.getElementById('resultArea').classList.add('hidden');
-                
-                const btn = document.getElementById('analyzeBtn');
-                btn.disabled = false;
-                btn.classList.remove('bg-gray-200', 'text-gray-400', 'cursor-not-allowed');
-                btn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-700');
-                btn.innerHTML = `<span><i class="fas fa-magic"></i> Analisar Foto</span>`;
+                base64Data = e.target.result.split(',')[1];
+                document.getElementById('imgPreview').src = e.target.result;
+                document.getElementById('previewBox').classList.remove('hidden');
+                log("Imagem carregada. Pronta para análise.", 'success');
             };
             reader.readAsDataURL(file);
         }
 
-        function resetImage() {
-            base64Image = null;
-            document.getElementById('previewContainer').classList.add('hidden');
-            document.getElementById('uploadButtons').classList.remove('hidden');
-            document.getElementById('resultArea').classList.add('hidden');
-            document.getElementById('retryLog').classList.add('hidden');
-            
-            const btn = document.getElementById('analyzeBtn');
-            btn.disabled = true;
-            btn.className = "w-full bg-gray-200 text-gray-400 font-bold py-4 rounded-xl transition cursor-not-allowed shadow-sm flex flex-col justify-center items-center gap-1 min-h-[60px]";
-            btn.innerText = "Aguardando foto...";
-            
-            document.querySelectorAll('input[type="file"]').forEach(i => i.value = '');
-        }
-
-        // --- LÓGICA DE TENTATIVAS EM CADEIA (CHAIN OF RESPONSIBILITY) ---
-        async function startAnalysisSequence() {
-            const key = localStorage.getItem('nutricam_v6_key');
-            if (!key) { alert("Configure a Chave primeiro."); toggleConfig(); return; }
-
-            const btn = document.getElementById('analyzeBtn');
-            const log = document.getElementById('retryLog');
+        async function analyze() {
+            const key = document.getElementById('apiKey').value.trim();
+            const btn = document.getElementById('btnAnalyze');
             
             btn.disabled = true;
-            log.classList.remove('hidden');
-            log.innerHTML = "Iniciando diagnóstico...";
+            btn.innerHTML = "⏳ Analisando (Aguarde)...";
+            log("Enviando requisição para IA...", 'info');
 
-            // Loop pelos modelos
-            for (const model of MODEL_CHAIN) {
-                btn.innerHTML = `<div class="loader"></div> <span class="text-xs">Tentando: ${model}...</span>`;
-                log.innerHTML += `<br>Tentando conectar com <b>${model}</b>...`;
+            try {
+                const prompt = "Aja como nutricionista esportivo (Homem, 91kg, emagrecimento). Analise a foto: Alimentos, Calorias, Proteínas. Resuma em tabela.";
+
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [
+                                { text: prompt },
+                                { inline_data: { mime_type: "image/jpeg", data: base64Data } }
+                            ]
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+
+                if(data.error) throw new Error(data.error.message);
+
+                const text = data.candidates[0].content.parts[0].text;
                 
-                try {
-                    const resultText = await callGemini(key, model);
-                    
-                    // SUCESSO!
-                    renderSuccess(resultText, model);
-                    log.innerHTML += ` <span class="text-green-600 font-bold">OK!</span>`;
-                    return; // Sai da função
+                // Exibe resultado no lugar do preview
+                const resultHTML = marked.parse(text);
+                const resultContainer = document.createElement('div');
+                resultContainer.className = "prose prose-invert prose-sm mt-4 bg-gray-900 p-4 rounded border border-green-700";
+                resultContainer.innerHTML = resultHTML;
+                
+                document.getElementById('previewBox').appendChild(resultContainer);
+                log("ANÁLISE CONCLUÍDA!", 'success');
+                btn.innerHTML = "✅ Feito";
 
-                } catch (error) {
-                    // FALHA NESTE MODELO, CONTINUA PARA O PRÓXIMO
-                    console.warn(`Falha no ${model}:`, error);
-                    log.innerHTML += ` <span class="text-red-500">Falhou (${error.message.substring(0, 15)}...)</span>`;
-                    // Loop continua...
-                }
+            } catch (error) {
+                log(`ERRO NA ANÁLISE: ${error.message}`, 'error');
+                btn.disabled = false;
+                btn.innerHTML = "🚀 Tentar Novamente";
+                alert("Erro: " + error.message);
             }
-
-            // SE CHEGAR AQUI, TODOS FALHARAM
-            btn.classList.remove('bg-blue-600');
-            btn.classList.add('bg-red-500');
-            btn.innerHTML = "Falha Geral";
-            alert("Erro Crítico: Nenhum modelo foi autorizado para esta chave.\n\nSOLUÇÃO: Você precisa criar uma NOVA chave no Google AI Studio (link no chat).");
         }
 
-        async function callGemini(key, model) {
-            const prompt = `
-            Aja como um nutricionista esportivo (Perfil: Homem, 1.74m, 91kg, Mestrando).
-            Analise a imagem:
-            1. Liste alimentos.
-            2. Tabela (Item | g | Kcal).
-            3. Total calórico.
-            4. Dica rápida sobre saciedade/proteína.
-            Responda em Markdown.
-            `;
-
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [
-                            { text: prompt },
-                            { inline_data: { mime_type: "image/jpeg", data: base64Image } }
-                        ]
-                    }]
-                })
-            });
-
-            const data = await response.json();
-
-            if (!response.ok || data.error) {
-                const msg = data.error?.message || response.statusText;
-                // Lança erro para o loop pegar e tentar o próximo
-                throw new Error(msg);
-            }
-
-            return data.candidates[0].content.parts[0].text;
-        }
-
-        function renderSuccess(text, model) {
-            document.getElementById('markdownContent').innerHTML = marked.parse(text);
-            document.getElementById('resultArea').classList.remove('hidden');
-            document.getElementById('badgeModel').innerText = model;
-            document.getElementById('analyzeBtn').className = "w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg";
-            document.getElementById('analyzeBtn').innerHTML = "<i class='fas fa-check'></i> Análise Concluída";
-            document.getElementById('analyzeBtn').disabled = false;
-            document.getElementById('analyzeBtn').onclick = resetImage; // Muda ação para limpar
-            
-            // Scroll para ver resultado
-            setTimeout(() => {
-                document.getElementById('resultArea').scrollIntoView({ behavior: 'smooth' });
-            }, 300);
+        // Auto-load chave salva
+        window.onload = () => {
+            const savedKey = localStorage.getItem('nutricam_debug_key');
+            if(savedKey) document.getElementById('apiKey').value = savedKey;
         }
     </script>
 </body>
