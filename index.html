@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NutriCam V18</title>
+    <title>NutriCam V19 OCR</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Marked para Markdown -->
@@ -16,7 +16,7 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; }
         
-        /* --- ESTILIZAÇÃO AVANÇADA DA TABELA (CARD COMPLETO) --- */
+        /* --- ESTILIZAÇÃO DO CARD VISUAL (TELA) --- */
         #markdownContent table {
             width: 100%; 
             border-collapse: separate; 
@@ -73,21 +73,78 @@
         
         #markdownContent strong { color: #fff; font-weight: 800; }
 
-        /* --- ESTILOS ESPECÍFICOS PARA O CARD COMPACTO (MINI) --- */
-        #miniCaptureArea {
-            background-color: #000;
-            color: #fff;
-            font-family: 'Courier New', monospace; /* Fonte monoespaçada para parecer cupom fiscal/dados */
+        /* --- ESTILOS ESPECÍFICOS PARA O CARD DE DADOS (OCR OTIMIZADO) --- */
+        #miniCardContainer {
+            background-color: #ffffff; /* Fundo Branco Puro */
+            color: #000000; /* Texto Preto Puro */
+            font-family: 'Arial', sans-serif; /* Fonte limpa e comum */
+            padding: 30px;
+            box-sizing: border-box;
+            /* Layout rígido */
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
-        #miniCaptureArea table {
+        
+        /* Título do Prato */
+        #miniTitle {
+            font-size: 28px;
+            font-weight: 900;
+            border-bottom: 3px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        /* Tabela OCR */
+        #miniTableWrapper table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 10px;
-            margin-bottom: 10px;
+            font-size: 18px; /* Fonte Grande */
+            margin-bottom: 20px;
         }
-        #miniCaptureArea th { border-bottom: 1px dashed #555; text-align: left; padding: 4px; }
-        #miniCaptureArea td { padding: 4px; }
-        #miniCaptureArea h2 { font-size: 14px; margin: 5px 0; border-top: 1px dashed #555; padding-top: 5px; }
+        #miniTableWrapper th { 
+            border: 2px solid #000; 
+            text-align: center; 
+            padding: 10px; 
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        #miniTableWrapper td { 
+            border: 2px solid #000; 
+            padding: 10px; 
+            text-align: center;
+            font-weight: 500;
+        }
+        #miniTableWrapper td:first-child { text-align: left; }
+
+        /* Box de Totais (Destaque Máximo) */
+        #miniTotalBox {
+            border: 4px solid #000;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            background-color: #f9f9f9;
+        }
+        #miniTotalCal {
+            font-size: 48px; /* Gigante */
+            font-weight: 900;
+            display: block;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+        #miniTotalProt {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        #miniDate {
+            text-align: right;
+            font-size: 12px;
+            color: #666;
+            margin-top: 20px;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-4">
@@ -160,7 +217,7 @@
             Aguardando foto...
         </button>
 
-        <!-- CONTAINER DE RESULTADO (CARD COMPLETO) -->
+        <!-- CONTAINER DE RESULTADO (VISUAL APP) -->
         <div id="captureArea" class="hidden mt-8 bg-gray-900 rounded-xl shadow-2xl border border-slate-700 overflow-hidden w-full mx-auto relative">
             
             <div id="heatBar" class="h-2 w-full bg-slate-700"></div>
@@ -193,12 +250,23 @@
             </div>
         </div>
 
-        <!-- AREA OCULTA PARA GERAR O CARD COMPACTO (Renderizado off-screen) -->
-        <div id="miniCardContainer" class="absolute top-0 left-[-9999px] w-[320px] bg-black p-4 border border-white text-white">
-            <h3 class="font-bold text-lg mb-1">Resumo Nutricional</h3>
-            <p class="text-xs mb-3" id="miniDateLabel"></p>
-            <div id="miniContentBody"></div>
-            <p class="text-[8px] mt-2 text-right">NutriCam Export</p>
+        <!-- AREA OCULTA PARA GERAR O CARD OCR (ALTA RESOLUÇÃO) -->
+        <!-- Tamanho fixo de 600px largura para garantir boa leitura no html2canvas -->
+        <div id="miniCardContainer" class="absolute top-0 left-[-9999px] w-[600px] border border-black">
+            <!-- 1. Título Resumido -->
+            <div id="miniTitle">Refeição</div>
+            
+            <!-- 2. Tabela -->
+            <div id="miniTableWrapper"></div>
+            
+            <!-- 3. Caixa de Totais -->
+            <div id="miniTotalBox">
+                <span id="miniTotalCal">0 Kcal</span>
+                <span id="miniTotalProt">Prot: 0g</span>
+            </div>
+
+            <!-- 4. Rodapé -->
+            <div id="miniDate"></div>
         </div>
 
         <!-- Botões de Ação -->
@@ -207,8 +275,8 @@
                 <button onclick="downloadCard()" class="bg-purple-700 hover:bg-purple-600 text-white text-sm font-bold py-3 rounded-xl shadow-lg transition flex justify-center items-center gap-2">
                     <i class="fas fa-camera"></i> Salvar Visual
                 </button>
-                <button onclick="downloadMiniCard()" class="bg-slate-700 hover:bg-slate-600 text-white text-sm font-bold py-3 rounded-xl shadow-lg transition flex justify-center items-center gap-2 border border-slate-600">
-                    <i class="fas fa-table"></i> Salvar Dados
+                <button onclick="downloadMiniCard()" class="bg-white hover:bg-gray-100 text-black text-sm font-bold py-3 rounded-xl shadow-lg transition flex justify-center items-center gap-2 border border-gray-300">
+                    <i class="fas fa-file-alt"></i> Salvar Dados (OCR)
                 </button>
             </div>
 
@@ -236,7 +304,7 @@
             }
             const dateStr = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
             document.getElementById('dateLabel').innerText = dateStr;
-            document.getElementById('miniDateLabel').innerText = dateStr;
+            document.getElementById('miniDate').innerText = "Data: " + dateStr;
         };
 
         async function fetchModels() {
@@ -405,15 +473,15 @@
                     contextString = `\n\nCONTEXTO DO USUÁRIO: "${userText}". Use isso para refinar a identificação.`;
                 }
 
-                // Prompt ajustado
+                // Prompt ajustado para gerar título claro no início
                 const prompt = `
                 Aja como nutricionista esportivo. Perfil: Homem, 91kg, objetivo emagrecimento/manutenção massa magra.
                 ${contextString}
                 
                 Analise a imagem. Siga estritamente esta ordem e formatação:
 
-                1. Resumo Descritivo
-                (Um parágrafo conciso descrevendo os alimentos identificados, qualidade da refeição e impacto na saciedade).
+                1. Nome do Prato (Título Curto)
+                (Ex: Frango Grelhado com Arroz e Brócolis)
 
                 2. Tabela Nutricional
                 (Colunas EXATAS nesta ordem: Item, Qtd, Kcal, Prot, Carb, Gord)
@@ -442,28 +510,46 @@
 
                 const text = data.candidates[0].content.parts[0].text;
                 
-                // Renderiza na tela principal
+                // Renderiza na tela principal (Markdown bonitinho)
                 document.getElementById('markdownContent').innerHTML = marked.parse(text);
                 
-                // PREPARA O MINI-CARD (Extração de dados)
-                // Usamos o DOMParser para pegar a tabela e o H2 do HTML gerado
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = marked.parse(text);
+                // --- PREPARAÇÃO DO CARD OCR (EXTRAÇÃO DE DADOS) ---
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(marked.parse(text), 'text/html');
                 
-                const tableHTML = tempDiv.querySelector('table') ? tempDiv.querySelector('table').outerHTML : '<p>Sem tabela</p>';
-                // Busca headers de totais
-                let totalsHTML = '';
-                const headers = tempDiv.querySelectorAll('h2');
-                headers.forEach(h => totalsHTML += h.outerHTML);
-                // Busca negritos que possam ser o total de proteina se não estiver em h2
-                const strongs = tempDiv.querySelectorAll('strong');
+                // 1. Extrair Título (Geralmente o primeiro P ou a primeira linha)
+                let title = "Refeição";
+                // Tenta achar o texto logo após o "1. Nome do Prato"
+                const firstP = doc.querySelector('p');
+                if (firstP) title = firstP.innerText;
+                document.getElementById('miniTitle').innerText = title;
+
+                // 2. Extrair Tabela
+                const table = doc.querySelector('table');
+                if (table) {
+                    document.getElementById('miniTableWrapper').innerHTML = table.outerHTML;
+                } else {
+                    document.getElementById('miniTableWrapper').innerHTML = "<p>Tabela não detectada</p>";
+                }
+
+                // 3. Extrair Totais
+                let calTxt = "0 Kcal";
+                let protTxt = "Prot: 0g";
+                
+                // Busca H2 para calorias
+                const h2 = doc.querySelector('h2');
+                if (h2) calTxt = h2.innerText.replace('Total:', '').trim();
+                
+                // Busca negrito para proteína
+                const strongs = doc.querySelectorAll('strong');
                 strongs.forEach(s => {
-                    if (s.innerText.includes('Total') || s.innerText.includes('Proteína')) {
-                        totalsHTML += `<p><strong>${s.innerText}</strong></p>`;
+                    if (s.innerText.includes('Proteína') || s.innerText.includes('Prot')) {
+                        protTxt = s.innerText.trim();
                     }
                 });
 
-                document.getElementById('miniContentBody').innerHTML = tableHTML + '<br>' + totalsHTML;
+                document.getElementById('miniTotalCal').innerText = calTxt;
+                document.getElementById('miniTotalProt').innerText = protTxt;
 
                 // Aplica cores e exibe
                 applyHeatMapColor();
@@ -531,11 +617,11 @@
             html2canvas(element, { backgroundColor: "#111827", scale: 1.5, logging: false, useCORS: true }).then(saveCanvas);
         }
 
-        // Card Compacto (Apenas Dados)
+        // Card Compacto (OCR Otimizado)
         function downloadMiniCard() {
             const element = document.getElementById('miniCardContainer');
-            // Move temporariamente para visível para capturar (mas off-screen)
-            html2canvas(element, { backgroundColor: "#000000", scale: 2, logging: false }).then(saveCanvas);
+            // Scale alto para garantir nitidez dos textos pequenos
+            html2canvas(element, { backgroundColor: "#ffffff", scale: 3, logging: false }).then(saveCanvas);
         }
 
         function saveCanvas(canvas) {
