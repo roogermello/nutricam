@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NutriCam V17</title>
+    <title>NutriCam V18</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Marked para Markdown -->
@@ -16,21 +16,21 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; }
         
-        /* --- ESTILIZAÇÃO AVANÇADA DA TABELA --- */
+        /* --- ESTILIZAÇÃO AVANÇADA DA TABELA (CARD COMPLETO) --- */
         #markdownContent table {
             width: 100%; 
             border-collapse: separate; 
             border-spacing: 0;
             margin: 0.5rem 0; 
             font-size: 0.75rem;
-            background-color: #1f2937; /* Cinza escuro */
+            background-color: #1f2937; 
             border-radius: 8px; 
             overflow: hidden;
             border: 1px solid #374151;
         }
         
         #markdownContent th { 
-            background-color: #111827; /* Quase preto */
+            background-color: #111827; 
             color: #9ca3af; 
             font-weight: 700; 
             text-align: center; 
@@ -48,21 +48,12 @@
             text-align: center;
         }
 
-        /* Coluna 1 (Item) alinhada à esquerda */
         #markdownContent td:nth-child(1) { text-align: left; padding-left: 10px; font-weight: 600; color: #f3f4f6; }
-        
-        /* Coluna 4 (Prot) - VERDE */
-        #markdownContent td:nth-child(4), #markdownContent th:nth-child(4) { color: #4ade80; }
-        
-        /* Coluna 5 (Carb) - VERMELHO CLARO */
-        #markdownContent td:nth-child(5), #markdownContent th:nth-child(5) { color: #f87171; }
-        
-        /* Coluna 6 (Gord) - AMARELO */
-        #markdownContent td:nth-child(6), #markdownContent th:nth-child(6) { color: #facc15; }
+        #markdownContent td:nth-child(4), #markdownContent th:nth-child(4) { color: #4ade80; } /* Prot Verde */
+        #markdownContent td:nth-child(5), #markdownContent th:nth-child(5) { color: #f87171; } /* Carb Vermelho */
+        #markdownContent td:nth-child(6), #markdownContent th:nth-child(6) { color: #facc15; } /* Gord Amarelo */
 
-        /* Tipografia do Markdown */
         #markdownContent h1, #markdownContent h2 {
-            /* A cor será definida dinamicamente via JS (mapa de calor), mas o base é cinza claro */
             color: #e5e7eb; 
             font-size: 1.5rem;
             font-weight: 900;
@@ -80,8 +71,23 @@
             text-align: justify;
         }
         
-        /* Destaques no texto corrido */
         #markdownContent strong { color: #fff; font-weight: 800; }
+
+        /* --- ESTILOS ESPECÍFICOS PARA O CARD COMPACTO (MINI) --- */
+        #miniCaptureArea {
+            background-color: #000;
+            color: #fff;
+            font-family: 'Courier New', monospace; /* Fonte monoespaçada para parecer cupom fiscal/dados */
+        }
+        #miniCaptureArea table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+            margin-bottom: 10px;
+        }
+        #miniCaptureArea th { border-bottom: 1px dashed #555; text-align: left; padding: 4px; }
+        #miniCaptureArea td { padding: 4px; }
+        #miniCaptureArea h2 { font-size: 14px; margin: 5px 0; border-top: 1px dashed #555; padding-top: 5px; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-4">
@@ -154,13 +160,11 @@
             Aguardando foto...
         </button>
 
-        <!-- CONTAINER DE RESULTADO (CARD) -->
+        <!-- CONTAINER DE RESULTADO (CARD COMPLETO) -->
         <div id="captureArea" class="hidden mt-8 bg-gray-900 rounded-xl shadow-2xl border border-slate-700 overflow-hidden w-full mx-auto relative">
             
-            <!-- Barra de Status Colorida (Topo) -->
             <div id="heatBar" class="h-2 w-full bg-slate-700"></div>
 
-            <!-- Foto no Card -->
             <div id="printHeader" class="w-full h-56 bg-black flex items-center justify-center relative border-b border-slate-800 hidden">
                 <img id="printImage" class="max-w-full max-h-full object-contain">
                 <div class="absolute bottom-0 left-0 bg-black/80 backdrop-blur px-3 py-1 text-[10px] text-white font-mono rounded-tr-lg border-t border-r border-slate-700">
@@ -176,7 +180,6 @@
                     <span class="text-[10px] text-slate-500 font-mono" id="dateLabel"></span>
                 </div>
                 
-                <!-- Nota do Usuário -->
                 <div id="userNoteDisplay" class="hidden mb-3 p-2 bg-blue-900/20 rounded border-l-2 border-blue-500">
                     <p class="text-[10px] text-blue-300 italic" id="userNoteText"></p>
                 </div>
@@ -190,13 +193,26 @@
             </div>
         </div>
 
-        <!-- Botões de Ação -->
-        <div class="w-full flex flex-col gap-3 mt-4 mb-8">
-            <button id="saveBtn" onclick="downloadCard()" class="hidden w-full bg-purple-700 hover:bg-purple-600 text-white font-bold py-3 rounded-xl shadow-lg transition flex justify-center items-center gap-2">
-                <i class="fas fa-download"></i> Salvar Card
-            </button>
+        <!-- AREA OCULTA PARA GERAR O CARD COMPACTO (Renderizado off-screen) -->
+        <div id="miniCardContainer" class="absolute top-0 left-[-9999px] w-[320px] bg-black p-4 border border-white text-white">
+            <h3 class="font-bold text-lg mb-1">Resumo Nutricional</h3>
+            <p class="text-xs mb-3" id="miniDateLabel"></p>
+            <div id="miniContentBody"></div>
+            <p class="text-[8px] mt-2 text-right">NutriCam Export</p>
+        </div>
 
-            <button id="refineBtn" onclick="enableRefinement()" class="hidden w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl shadow transition flex justify-center items-center gap-2 border border-slate-700">
+        <!-- Botões de Ação -->
+        <div id="actionButtonsGroup" class="w-full flex-col gap-3 mt-4 mb-8 hidden">
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="downloadCard()" class="bg-purple-700 hover:bg-purple-600 text-white text-sm font-bold py-3 rounded-xl shadow-lg transition flex justify-center items-center gap-2">
+                    <i class="fas fa-camera"></i> Salvar Visual
+                </button>
+                <button onclick="downloadMiniCard()" class="bg-slate-700 hover:bg-slate-600 text-white text-sm font-bold py-3 rounded-xl shadow-lg transition flex justify-center items-center gap-2 border border-slate-600">
+                    <i class="fas fa-table"></i> Salvar Dados
+                </button>
+            </div>
+
+            <button onclick="enableRefinement()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-400 font-bold py-3 rounded-xl shadow transition flex justify-center items-center gap-2 border border-slate-700 text-xs">
                 <i class="fas fa-edit"></i> Corrigir / Adicionar Detalhes
             </button>
         </div>
@@ -218,7 +234,9 @@
             } else {
                 document.getElementById('configPanel').classList.remove('hidden');
             }
-            document.getElementById('dateLabel').innerText = new Date().toLocaleDateString('pt-BR');
+            const dateStr = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('dateLabel').innerText = dateStr;
+            document.getElementById('miniDateLabel').innerText = dateStr;
         };
 
         async function fetchModels() {
@@ -333,8 +351,7 @@
                 document.getElementById('descriptionArea').classList.remove('hidden');
                 document.getElementById('uploadButtons').classList.add('hidden');
                 document.getElementById('captureArea').classList.add('hidden');
-                document.getElementById('saveBtn').classList.add('hidden');
-                document.getElementById('refineBtn').classList.add('hidden');
+                document.getElementById('actionButtonsGroup').classList.add('hidden');
                 document.getElementById('errorLog').classList.add('hidden');
                 
                 const btn = document.getElementById('analyzeBtn');
@@ -354,8 +371,7 @@
             
             document.getElementById('uploadButtons').classList.remove('hidden');
             document.getElementById('captureArea').classList.add('hidden');
-            document.getElementById('saveBtn').classList.add('hidden');
-            document.getElementById('refineBtn').classList.add('hidden');
+            document.getElementById('actionButtonsGroup').classList.add('hidden');
             
             const btn = document.getElementById('analyzeBtn');
             btn.disabled = true;
@@ -365,7 +381,7 @@
             document.querySelectorAll('input').forEach(i => i.value = '');
         }
 
-        // --- 3. ANÁLISE E COLORAÇÃO DINÂMICA ---
+        // --- 3. ANÁLISE ---
         async function analyze() {
             const key = localStorage.getItem('nutricam_stable_key');
             let modelName = localStorage.getItem('nutricam_stable_model');
@@ -389,7 +405,7 @@
                     contextString = `\n\nCONTEXTO DO USUÁRIO: "${userText}". Use isso para refinar a identificação.`;
                 }
 
-                // Prompt ajustado para Resumo Descritivo + Tabela
+                // Prompt ajustado
                 const prompt = `
                 Aja como nutricionista esportivo. Perfil: Homem, 91kg, objetivo emagrecimento/manutenção massa magra.
                 ${contextString}
@@ -397,7 +413,7 @@
                 Analise a imagem. Siga estritamente esta ordem e formatação:
 
                 1. Resumo Descritivo
-                (Um parágrafo conciso, sem tópicos, descrevendo os alimentos identificados, qualidade da refeição e impacto na saciedade).
+                (Um parágrafo conciso descrevendo os alimentos identificados, qualidade da refeição e impacto na saciedade).
 
                 2. Tabela Nutricional
                 (Colunas EXATAS nesta ordem: Item, Qtd, Kcal, Prot, Carb, Gord)
@@ -426,13 +442,31 @@
 
                 const text = data.candidates[0].content.parts[0].text;
                 
-                // 1. Renderiza Markdown
+                // Renderiza na tela principal
                 document.getElementById('markdownContent').innerHTML = marked.parse(text);
                 
-                // 2. Aplica Escala de Calor (Heatmap)
-                applyHeatMapColor();
+                // PREPARA O MINI-CARD (Extração de dados)
+                // Usamos o DOMParser para pegar a tabela e o H2 do HTML gerado
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = marked.parse(text);
+                
+                const tableHTML = tempDiv.querySelector('table') ? tempDiv.querySelector('table').outerHTML : '<p>Sem tabela</p>';
+                // Busca headers de totais
+                let totalsHTML = '';
+                const headers = tempDiv.querySelectorAll('h2');
+                headers.forEach(h => totalsHTML += h.outerHTML);
+                // Busca negritos que possam ser o total de proteina se não estiver em h2
+                const strongs = tempDiv.querySelectorAll('strong');
+                strongs.forEach(s => {
+                    if (s.innerText.includes('Total') || s.innerText.includes('Proteína')) {
+                        totalsHTML += `<p><strong>${s.innerText}</strong></p>`;
+                    }
+                });
 
-                // 3. Exibe Interface
+                document.getElementById('miniContentBody').innerHTML = tableHTML + '<br>' + totalsHTML;
+
+                // Aplica cores e exibe
+                applyHeatMapColor();
                 const captureArea = document.getElementById('captureArea');
                 captureArea.classList.remove('hidden');
                 document.getElementById('printHeader').classList.remove('hidden');
@@ -445,8 +479,8 @@
                 }
                 
                 document.getElementById('modelBadge').innerText = cleanModelName;
-                document.getElementById('saveBtn').classList.remove('hidden');
-                document.getElementById('refineBtn').classList.remove('hidden');
+                document.getElementById('actionButtonsGroup').classList.remove('hidden');
+                document.getElementById('actionButtonsGroup').classList.add('flex');
                 
                 captureArea.scrollIntoView({ behavior: 'smooth' });
 
@@ -460,9 +494,7 @@
             }
         }
 
-        // --- FUNÇÃO PARA COLORIR CALORIAS DINAMICAMENTE ---
         function applyHeatMapColor() {
-            // Procura o H2 que contém "Total"
             const headers = document.querySelectorAll('#markdownContent h2');
             let totalHeader = null;
             let calories = 0;
@@ -470,55 +502,47 @@
             headers.forEach(h2 => {
                 if (h2.innerText.includes('Total')) {
                     totalHeader = h2;
-                    // Extrai apenas números do texto (Ex: "Total: 500 Kcal" -> 500)
                     const match = h2.innerText.match(/(\d+)/);
                     if (match) calories = parseInt(match[0]);
                 }
             });
 
             if (totalHeader) {
-                let colorClass = '#4ade80'; // Verde (padrão < 400)
+                let colorClass = '#4ade80';
                 let barColor = 'bg-green-500';
 
                 if (calories > 800) {
-                    colorClass = '#ef4444'; // Vermelho (Quente)
+                    colorClass = '#ef4444'; 
                     barColor = 'bg-red-500';
                 } else if (calories > 400) {
-                    colorClass = '#facc15'; // Amarelo/Laranja (Morno)
+                    colorClass = '#facc15';
                     barColor = 'bg-yellow-500';
                 }
-
-                // Aplica cor ao texto das calorias
                 totalHeader.style.color = colorClass;
-                // Aplica cor à barra superior do card
                 document.getElementById('heatBar').className = `h-2 w-full ${barColor}`;
             }
         }
 
-        // --- 4. FUNÇÃO DE DOWNLOAD ---
+        // --- 4. FUNÇÕES DE DOWNLOAD ---
+        
+        // Card Completo (Visual)
         function downloadCard() {
             const element = document.getElementById('captureArea');
-            const btn = document.getElementById('saveBtn');
-            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Gerando...`;
-            
-            html2canvas(element, {
-                backgroundColor: "#111827", // Cinza/Preto do card
-                scale: 1.5, 
-                logging: false,
-                useCORS: true
-            }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = 'NutriCam_' + new Date().toLocaleTimeString().replace(/:/g, '-') + '.png';
-                link.href = canvas.toDataURL("image/png");
-                link.click();
-                btn.innerHTML = `<i class="fas fa-check"></i> Salvo!`;
-                setTimeout(() => {
-                    btn.innerHTML = `<i class="fas fa-download"></i> Salvar Card na Galeria`;
-                }, 2000);
-            }).catch(err => {
-                alert("Erro: " + err);
-                btn.innerHTML = "Erro ao salvar";
-            });
+            html2canvas(element, { backgroundColor: "#111827", scale: 1.5, logging: false, useCORS: true }).then(saveCanvas);
+        }
+
+        // Card Compacto (Apenas Dados)
+        function downloadMiniCard() {
+            const element = document.getElementById('miniCardContainer');
+            // Move temporariamente para visível para capturar (mas off-screen)
+            html2canvas(element, { backgroundColor: "#000000", scale: 2, logging: false }).then(saveCanvas);
+        }
+
+        function saveCanvas(canvas) {
+            const link = document.createElement('a');
+            link.download = 'Nutri_' + new Date().toLocaleTimeString().replace(/:/g, '-') + '.png';
+            link.href = canvas.toDataURL("image/png");
+            link.click();
         }
     </script>
 </body>
