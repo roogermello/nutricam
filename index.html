@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NutriCam V19 OCR</title>
+    <title>NutriCam V20</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Marked para Markdown -->
@@ -16,7 +16,7 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; }
         
-        /* --- ESTILIZAÇÃO DO CARD VISUAL (TELA) --- */
+        /* --- ESTILIZAÇÃO DO CARD VISUAL --- */
         #markdownContent table {
             width: 100%; 
             border-collapse: separate; 
@@ -55,12 +55,21 @@
 
         #markdownContent h1, #markdownContent h2 {
             color: #e5e7eb; 
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             font-weight: 900;
             margin-top: 1rem;
             margin-bottom: 0.5rem;
-            text-align: center;
+            border-bottom: 1px solid #374151;
+            padding-bottom: 5px;
             letter-spacing: -0.02em;
+        }
+        
+        /* Destaque especial para o Total Calórico (H2 com "Total") */
+        #markdownContent h2:last-of-type {
+            text-align: center;
+            font-size: 1.8rem;
+            border: none;
+            margin-top: 1.5rem;
         }
         
         #markdownContent p { 
@@ -72,53 +81,38 @@
         }
         
         #markdownContent strong { color: #fff; font-weight: 800; }
+        #markdownContent ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; color: #d1d5db; font-size: 0.85rem; }
 
-        /* --- ESTILOS ESPECÍFICOS PARA O CARD DE DADOS (OCR OTIMIZADO) --- */
+        /* --- ESTILOS CARD OCR (DADOS) --- */
         #miniCardContainer {
-            background-color: #ffffff; /* Fundo Branco Puro */
-            color: #000000; /* Texto Preto Puro */
-            font-family: 'Arial', sans-serif; /* Fonte limpa e comum */
+            background-color: #ffffff;
+            color: #000000;
+            font-family: 'Arial', sans-serif;
             padding: 30px;
             box-sizing: border-box;
-            /* Layout rígido */
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
         
-        /* Título do Prato */
         #miniTitle {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 900;
             border-bottom: 3px solid #000;
             padding-bottom: 10px;
-            margin-bottom: 10px;
             text-transform: uppercase;
         }
 
-        /* Tabela OCR */
         #miniTableWrapper table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 18px; /* Fonte Grande */
+            font-size: 18px;
             margin-bottom: 20px;
         }
-        #miniTableWrapper th { 
-            border: 2px solid #000; 
-            text-align: center; 
-            padding: 10px; 
-            background-color: #f0f0f0;
-            font-weight: bold;
-        }
-        #miniTableWrapper td { 
-            border: 2px solid #000; 
-            padding: 10px; 
-            text-align: center;
-            font-weight: 500;
-        }
+        #miniTableWrapper th { border: 2px solid #000; text-align: center; padding: 10px; background-color: #f0f0f0; font-weight: bold; }
+        #miniTableWrapper td { border: 2px solid #000; padding: 10px; text-align: center; font-weight: 500; }
         #miniTableWrapper td:first-child { text-align: left; }
 
-        /* Box de Totais (Destaque Máximo) */
         #miniTotalBox {
             border: 4px solid #000;
             border-radius: 12px;
@@ -126,30 +120,14 @@
             text-align: center;
             background-color: #f9f9f9;
         }
-        #miniTotalCal {
-            font-size: 48px; /* Gigante */
-            font-weight: 900;
-            display: block;
-            line-height: 1;
-            margin-bottom: 5px;
-        }
-        #miniTotalProt {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
-        }
-        #miniDate {
-            text-align: right;
-            font-size: 12px;
-            color: #666;
-            margin-top: 20px;
-            font-family: monospace;
-        }
+        #miniTotalCal { font-size: 48px; font-weight: 900; display: block; line-height: 1; margin-bottom: 5px; }
+        #miniTotalProt { font-size: 24px; font-weight: bold; color: #333; }
+        #miniDate { text-align: right; font-size: 12px; color: #666; margin-top: 20px; font-family: monospace; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-4">
 
-    <!-- Header Simples -->
+    <!-- Header -->
     <div class="w-full max-w-md flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
         <h1 class="font-bold text-xl flex items-center gap-2">
             <i class="fas fa-carrot text-green-500"></i> NutriCam 
@@ -159,21 +137,19 @@
         </button>
     </div>
 
-    <!-- Painel de Configuração -->
+    <!-- Config -->
     <div id="configPanel" class="w-full max-w-md bg-slate-900 rounded-xl p-5 mb-6 border border-slate-700 shadow-xl hidden">
         <h2 class="font-bold text-slate-200 mb-3 text-sm uppercase flex items-center gap-2">
             <i class="fas fa-plug"></i> Conexão API
         </h2>
         <input type="password" id="apiKeyInput" class="w-full p-3 bg-black border border-slate-700 rounded-lg text-white text-xs font-mono mb-3 focus:border-blue-500 outline-none transition" placeholder="Cole sua API Key aqui...">
-        
         <button onclick="fetchModels()" id="btnConnect" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg mb-4 transition flex justify-center items-center gap-2 shadow-lg">
-            <span>📡 Conectar e Buscar Modelos</span>
+            <span>📡 Conectar</span>
         </button>
-
         <div id="modelSelectArea" class="hidden animate-fade-in">
-            <label class="text-xs text-slate-400 block mb-1">Modelo Selecionado:</label>
+            <label class="text-xs text-slate-400 block mb-1">Modelo:</label>
             <select id="modelSelect" class="w-full p-3 bg-black border border-green-500 rounded-lg text-white text-sm mb-3"></select>
-            <button onclick="saveConfig()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg transition shadow-lg">✅ Salvar Configuração</button>
+            <button onclick="saveConfig()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg transition shadow-lg">✅ Salvar</button>
         </div>
         <p id="statusMsg" class="text-center text-xs text-slate-400 mt-2"></p>
     </div>
@@ -189,18 +165,17 @@
             </button>
         </div>
 
-        <!-- ÁREA DE DESCRIÇÃO -->
+        <!-- Descrição Opcional -->
         <div id="descriptionArea" class="hidden w-full mb-4 animate-fade-in scroll-mt-20">
             <button onclick="toggleDescriptionInput()" class="text-xs text-blue-400 hover:text-blue-300 font-bold mb-2 flex items-center gap-1 transition">
-                <i class="fas fa-pen"></i> Adicionar detalhes dos alimentos (Opcional)
+                <i class="fas fa-pen"></i> Adicionar detalhes (Opcional)
             </button>
-            
             <div id="inputContainer" class="hidden">
-                <textarea id="userDescription" rows="2" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:border-blue-500 outline-none placeholder-slate-500" placeholder="Ex: O molho é de iogurte, o arroz é integral, tem 200g de frango..."></textarea>
+                <textarea id="userDescription" rows="2" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:border-blue-500 outline-none placeholder-slate-500" placeholder="Ex: O molho é de iogurte..."></textarea>
             </div>
         </div>
 
-        <!-- BOTÃO DE UPLOAD -->
+        <!-- Upload -->
         <div id="uploadButtons" class="w-full">
             <label class="group relative w-full bg-slate-900 hover:bg-slate-800 border-2 border-dashed border-slate-700 hover:border-blue-500 rounded-2xl cursor-pointer transition-all duration-300 flex flex-col items-center justify-center py-10 shadow-lg">
                 <div class="bg-blue-600/10 p-4 rounded-full mb-3 group-hover:scale-110 transition duration-300">
@@ -217,22 +192,19 @@
             Aguardando foto...
         </button>
 
-        <!-- CONTAINER DE RESULTADO (VISUAL APP) -->
+        <!-- CARD RESULTADO (VISUAL) -->
         <div id="captureArea" class="hidden mt-8 bg-gray-900 rounded-xl shadow-2xl border border-slate-700 overflow-hidden w-full mx-auto relative">
-            
             <div id="heatBar" class="h-2 w-full bg-slate-700"></div>
-
+            
             <div id="printHeader" class="w-full h-56 bg-black flex items-center justify-center relative border-b border-slate-800 hidden">
                 <img id="printImage" class="max-w-full max-h-full object-contain">
-                <div class="absolute bottom-0 left-0 bg-black/80 backdrop-blur px-3 py-1 text-[10px] text-white font-mono rounded-tr-lg border-t border-r border-slate-700">
-                    NutriCam Log
-                </div>
+                <div class="absolute bottom-0 left-0 bg-black/80 backdrop-blur px-3 py-1 text-[10px] text-white font-mono rounded-tr-lg border-t border-r border-slate-700">NutriCam Log</div>
             </div>
 
             <div class="p-5">
                 <div class="flex justify-between items-center mb-2 pb-2 border-b border-slate-800">
                     <h3 class="font-bold text-white flex items-center gap-2 text-sm">
-                        <i class="fas fa-chart-simple text-blue-400"></i> Dashboard Nutricional
+                        <i class="fas fa-chart-simple text-blue-400"></i> Análise
                     </h3>
                     <span class="text-[10px] text-slate-500 font-mono" id="dateLabel"></span>
                 </div>
@@ -250,26 +222,18 @@
             </div>
         </div>
 
-        <!-- AREA OCULTA PARA GERAR O CARD OCR (ALTA RESOLUÇÃO) -->
-        <!-- Tamanho fixo de 600px largura para garantir boa leitura no html2canvas -->
+        <!-- CARD OCR (OCULTO) -->
         <div id="miniCardContainer" class="absolute top-0 left-[-9999px] w-[600px] border border-black">
-            <!-- 1. Título Resumido -->
             <div id="miniTitle">Refeição</div>
-            
-            <!-- 2. Tabela -->
             <div id="miniTableWrapper"></div>
-            
-            <!-- 3. Caixa de Totais -->
             <div id="miniTotalBox">
                 <span id="miniTotalCal">0 Kcal</span>
                 <span id="miniTotalProt">Prot: 0g</span>
             </div>
-
-            <!-- 4. Rodapé -->
             <div id="miniDate"></div>
         </div>
 
-        <!-- Botões de Ação -->
+        <!-- Ações -->
         <div id="actionButtonsGroup" class="w-full flex-col gap-3 mt-4 mb-8 hidden">
             <div class="grid grid-cols-2 gap-3">
                 <button onclick="downloadCard()" class="bg-purple-700 hover:bg-purple-600 text-white text-sm font-bold py-3 rounded-xl shadow-lg transition flex justify-center items-center gap-2">
@@ -279,7 +243,6 @@
                     <i class="fas fa-file-alt"></i> Salvar Dados (OCR)
                 </button>
             </div>
-
             <button onclick="enableRefinement()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-400 font-bold py-3 rounded-xl shadow transition flex justify-center items-center gap-2 border border-slate-700 text-xs">
                 <i class="fas fa-edit"></i> Corrigir / Adicionar Detalhes
             </button>
@@ -289,7 +252,7 @@
     </div>
 
     <script>
-        // --- 1. CONFIGURAÇÃO ---
+        // --- 1. CONFIG ---
         window.onload = () => {
             const savedKey = localStorage.getItem('nutricam_stable_key');
             if (savedKey) {
@@ -315,28 +278,21 @@
             const area = document.getElementById('modelSelectArea');
 
             if (key.length < 10) return alert("Chave muito curta.");
-
             btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Conectando...`;
             status.innerText = "Consultando API...";
 
             try {
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
                 const data = await response.json();
-
                 if (data.error) throw new Error(data.error.message);
 
-                const models = data.models.filter(m => 
-                    m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent")
-                );
-
+                const models = data.models.filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent"));
                 select.innerHTML = "";
                 let foundPreferred = false;
-                
                 models.sort((a, b) => {
                     if (a.name.includes('flash') && !b.name.includes('flash')) return -1;
                     return 0;
                 });
-
                 models.forEach(m => {
                     const option = document.createElement('option');
                     option.value = m.name; 
@@ -347,12 +303,10 @@
                         foundPreferred = true;
                     }
                 });
-
                 area.classList.remove('hidden');
                 btn.classList.add('hidden');
                 status.innerText = `✅ ${models.length} modelos encontrados.`;
                 status.className = "text-center text-xs text-green-400 mt-2";
-
             } catch (error) {
                 status.innerText = "Erro: " + error.message;
                 status.className = "text-center text-xs text-red-400 mt-2";
@@ -380,48 +334,40 @@
             document.getElementById('modelSelectArea').classList.add('hidden');
         }
 
-        // --- 2. INTERFACE E IMAGEM ---
+        // --- 2. IMAGEM ---
         let base64Image = null;
 
         function toggleDescriptionInput() {
             const container = document.getElementById('inputContainer');
             container.classList.toggle('hidden');
-            if (!container.classList.contains('hidden')) {
-                document.getElementById('userDescription').focus();
-            }
+            if (!container.classList.contains('hidden')) document.getElementById('userDescription').focus();
         }
 
         function enableRefinement() {
             const container = document.getElementById('inputContainer');
             const descArea = document.getElementById('descriptionArea');
             const textarea = document.getElementById('userDescription');
-            
             container.classList.remove('hidden');
             descArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
             textarea.focus();
             textarea.classList.add('ring-1', 'ring-blue-500');
-            
-            const btn = document.getElementById('analyzeBtn');
-            btn.innerHTML = `<i class="fas fa-sync-alt"></i> Reanalisar com Correções`;
+            document.getElementById('analyzeBtn').innerHTML = `<i class="fas fa-sync-alt"></i> Reanalisar com Correções`;
         }
 
         function handleFile(input) {
             const file = input.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = (e) => {
                 base64Image = e.target.result.split(',')[1];
                 document.getElementById('imagePreview').src = e.target.result;
                 document.getElementById('printImage').src = e.target.result;
-                
                 document.getElementById('previewContainer').classList.remove('hidden');
                 document.getElementById('descriptionArea').classList.remove('hidden');
                 document.getElementById('uploadButtons').classList.add('hidden');
                 document.getElementById('captureArea').classList.add('hidden');
                 document.getElementById('actionButtonsGroup').classList.add('hidden');
                 document.getElementById('errorLog').classList.add('hidden');
-                
                 const btn = document.getElementById('analyzeBtn');
                 btn.disabled = false;
                 btn.className = "w-full mt-6 bg-green-600 hover:bg-green-500 text-white font-bold py-4 rounded-xl transition shadow-lg shadow-green-900/20 flex justify-center items-center gap-2 transform active:scale-95";
@@ -436,16 +382,13 @@
             document.getElementById('descriptionArea').classList.add('hidden');
             document.getElementById('inputContainer').classList.add('hidden');
             document.getElementById('userDescription').value = '';
-            
             document.getElementById('uploadButtons').classList.remove('hidden');
             document.getElementById('captureArea').classList.add('hidden');
             document.getElementById('actionButtonsGroup').classList.add('hidden');
-            
             const btn = document.getElementById('analyzeBtn');
             btn.disabled = true;
             btn.className = "w-full mt-6 bg-slate-800 text-slate-500 font-bold py-4 rounded-xl transition cursor-not-allowed flex justify-center items-center gap-2 border border-slate-700";
             btn.innerHTML = "Aguardando foto...";
-            
             document.querySelectorAll('input').forEach(i => i.value = '');
         }
 
@@ -453,7 +396,6 @@
         async function analyze() {
             const key = localStorage.getItem('nutricam_stable_key');
             let modelName = localStorage.getItem('nutricam_stable_model');
-
             if (!key || !modelName) return toggleConfig();
 
             const btn = document.getElementById('analyzeBtn');
@@ -468,25 +410,24 @@
                 let cleanModelName = modelName.startsWith('models/') ? modelName.replace('models/', '') : modelName;
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModelName}:generateContent?key=${key}`;
 
-                let contextString = "";
-                if (userText) {
-                    contextString = `\n\nCONTEXTO DO USUÁRIO: "${userText}". Use isso para refinar a identificação.`;
-                }
+                let contextString = userText ? `\n\nCONTEXTO USUÁRIO (Use para corrigir): "${userText}"` : "";
 
-                // Prompt ajustado para gerar título claro no início
+                // PROMPT V20 - Direto e Objetivo
                 const prompt = `
-                Aja como nutricionista esportivo. Perfil: Homem, 91kg, objetivo emagrecimento/manutenção massa magra.
+                Aja como nutricionista esportivo (Perfil oculto: Homem, 91kg, emagrecimento).
                 ${contextString}
                 
-                Analise a imagem. Siga estritamente esta ordem e formatação:
+                Analise a imagem. Responda DIRETAMENTE neste formato (sem intro):
 
-                1. Nome do Prato (Título Curto)
-                (Ex: Frango Grelhado com Arroz e Brócolis)
+                1. Alimentos Identificados
+                [Lista simples]
 
                 2. Tabela Nutricional
-                (Colunas EXATAS nesta ordem: Item, Qtd, Kcal, Prot, Carb, Gord)
+                (Colunas: Item, Qtd, Kcal, Prot, Carb, Gord)
                 
-                3. Totais
+                3. Análise do Prato
+                [Cite benefícios e pontos negativos. Destaque termos chaves em **negrito**]
+
                 ## Total: [Valor] Kcal
                 **Proteína Total: [Valor]g**
                 `;
@@ -505,53 +446,35 @@
                 });
 
                 const data = await response.json();
-
                 if (data.error) throw new Error(`${data.error.code} - ${data.error.message}`);
 
                 const text = data.candidates[0].content.parts[0].text;
-                
-                // Renderiza na tela principal (Markdown bonitinho)
                 document.getElementById('markdownContent').innerHTML = marked.parse(text);
                 
-                // --- PREPARAÇÃO DO CARD OCR (EXTRAÇÃO DE DADOS) ---
+                // OCR Prep
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(marked.parse(text), 'text/html');
                 
-                // 1. Extrair Título (Geralmente o primeiro P ou a primeira linha)
-                let title = "Refeição";
-                // Tenta achar o texto logo após o "1. Nome do Prato"
-                const firstP = doc.querySelector('p');
-                if (firstP) title = firstP.innerText;
-                document.getElementById('miniTitle').innerText = title;
-
-                // 2. Extrair Tabela
                 const table = doc.querySelector('table');
-                if (table) {
-                    document.getElementById('miniTableWrapper').innerHTML = table.outerHTML;
-                } else {
-                    document.getElementById('miniTableWrapper').innerHTML = "<p>Tabela não detectada</p>";
-                }
+                if (table) document.getElementById('miniTableWrapper').innerHTML = table.outerHTML;
+                else document.getElementById('miniTableWrapper').innerHTML = "<p>Tabela não detectada</p>";
 
-                // 3. Extrair Totais
                 let calTxt = "0 Kcal";
                 let protTxt = "Prot: 0g";
+                const h2s = doc.querySelectorAll('h2');
+                h2s.forEach(h => {
+                    if(h.innerText.includes('Total')) calTxt = h.innerText.replace('Total:', '').trim();
+                });
                 
-                // Busca H2 para calorias
-                const h2 = doc.querySelector('h2');
-                if (h2) calTxt = h2.innerText.replace('Total:', '').trim();
-                
-                // Busca negrito para proteína
+                // Tenta pegar proteína do negrito se não achar em H2
                 const strongs = doc.querySelectorAll('strong');
                 strongs.forEach(s => {
-                    if (s.innerText.includes('Proteína') || s.innerText.includes('Prot')) {
-                        protTxt = s.innerText.trim();
-                    }
+                    if (s.innerText.includes('Proteína') || s.innerText.includes('Prot')) protTxt = s.innerText.trim();
                 });
 
                 document.getElementById('miniTotalCal').innerText = calTxt;
                 document.getElementById('miniTotalProt').innerText = protTxt;
 
-                // Aplica cores e exibe
                 applyHeatMapColor();
                 const captureArea = document.getElementById('captureArea');
                 captureArea.classList.remove('hidden');
@@ -584,7 +507,6 @@
             const headers = document.querySelectorAll('#markdownContent h2');
             let totalHeader = null;
             let calories = 0;
-
             headers.forEach(h2 => {
                 if (h2.innerText.includes('Total')) {
                     totalHeader = h2;
@@ -596,31 +518,20 @@
             if (totalHeader) {
                 let colorClass = '#4ade80';
                 let barColor = 'bg-green-500';
-
-                if (calories > 800) {
-                    colorClass = '#ef4444'; 
-                    barColor = 'bg-red-500';
-                } else if (calories > 400) {
-                    colorClass = '#facc15';
-                    barColor = 'bg-yellow-500';
-                }
+                if (calories > 800) { colorClass = '#ef4444'; barColor = 'bg-red-500'; }
+                else if (calories > 400) { colorClass = '#facc15'; barColor = 'bg-yellow-500'; }
                 totalHeader.style.color = colorClass;
                 document.getElementById('heatBar').className = `h-2 w-full ${barColor}`;
             }
         }
 
-        // --- 4. FUNÇÕES DE DOWNLOAD ---
-        
-        // Card Completo (Visual)
         function downloadCard() {
             const element = document.getElementById('captureArea');
             html2canvas(element, { backgroundColor: "#111827", scale: 1.5, logging: false, useCORS: true }).then(saveCanvas);
         }
 
-        // Card Compacto (OCR Otimizado)
         function downloadMiniCard() {
             const element = document.getElementById('miniCardContainer');
-            // Scale alto para garantir nitidez dos textos pequenos
             html2canvas(element, { backgroundColor: "#ffffff", scale: 3, logging: false }).then(saveCanvas);
         }
 
